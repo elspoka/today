@@ -1,6 +1,6 @@
 services:
   client:
-    image: ghcr.io/elspoka/today-client:develop
+    image: elspoka/today-client:latest
     restart: unless-stopped
     ports:
       - "3150:80"
@@ -8,7 +8,7 @@ services:
       - server
 
   server:
-    image: ghcr.io/elspoka/today-server:develop
+    image: elspoka/today-server:latest
     restart: unless-stopped
     ports:
       - "3000:3000"
