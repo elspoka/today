@@ -1,0 +1,22 @@
+services:
+  client:
+    image: ghcr.io/elspoka/today-client:develop
+    restart: unless-stopped
+    ports:
+      - "3150:80"
+    depends_on:
+      - server
+
+  server:
+    image: ghcr.io/elspoka/today-server:develop
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_PROVIDER: supabase
+      AUTH_MODE: supabase
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      CLIENT_ORIGIN: http://localhost:3150
