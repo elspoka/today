@@ -37,7 +37,11 @@ export class SupabaseTodoRepository extends TodoRepository {
     const { data, error } = await query;
 
     if (error) {
-      if (error.message && error.message.includes("list_id")) {
+      if (
+        error.message &&
+        (error.message.includes("list_id") ||
+          (error.message.includes("column") && error.message.includes("does not exist")))
+      ) {
         const { data: fallbackData, error: fallbackError } = await this.client
           .from(this.table)
           .select("id, text, completed, created_at")
@@ -118,12 +122,30 @@ export class SupabaseTodoRepository extends TodoRepository {
       .maybeSingle();
 
     if (error) {
+      // list_id or user_id column may not exist yet — fall back to id-only update
+      if (error.message && error.message.includes("does not exist")) {
+        const { data: fallbackData, error: fallbackError } = await this.client
+          .from(this.table)
+          .update(updatePayload)
+          .eq("id", id)
+          .select("id, text, completed, created_at")
+          .maybeSingle();
+
+        if (fallbackError) throw mapSupabaseError(fallbackError);
+        if (!fallbackData) return null;
+
+        return {
+          id: fallbackData.id,
+          text: fallbackData.text,
+          completed: fallbackData.completed,
+          listId: null,
+          createdAt: fallbackData.created_at
+        };
+      }
       throw mapSupabaseError(error);
     }
 
-    if (!data) {
-      return null;
-    }
+    if (!data) return null;
 
     return {
       id: data.id,
@@ -148,6 +170,18 @@ export class SupabaseTodoRepository extends TodoRepository {
       .maybeSingle();
 
     if (error) {
+      // list_id or user_id column may not exist yet — fall back to id-only delete
+      if (error.message && error.message.includes("does not exist")) {
+        const { data: fallbackData, error: fallbackError } = await this.client
+          .from(this.table)
+          .delete()
+          .eq("id", id)
+          .select("id")
+          .maybeSingle();
+
+        if (fallbackError) throw mapSupabaseError(fallbackError);
+        return Boolean(fallbackData);
+      }
       throw mapSupabaseError(error);
     }
 
