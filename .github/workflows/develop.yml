@@ -30,7 +30,8 @@ jobs:
       - name: Build and push client
         uses: docker/build-push-action@v5
         with:
-          context: ./client
+          context: .
+          file: ./client/Dockerfile
           push: true
           tags: ghcr.io/elspoka/today-client:develop
           build-args: |
@@ -42,7 +43,8 @@ jobs:
       - name: Build and push server
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: .
+          file: ./server/Dockerfile
           push: true
           tags: ghcr.io/elspoka/today-server:develop
           cache-from: type=gha,scope=server-develop
