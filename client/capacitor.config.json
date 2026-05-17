@@ -1,0 +1,6 @@
+{
+  "appId": "com.modern.todo",
+  "appName": "Modern Todo",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

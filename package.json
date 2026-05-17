@@ -1,0 +1,22 @@
+{
+  "name": "modern-todo-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run start -w server",
+    "desktop:dev": "npm run tauri:dev -w client",
+    "desktop:build": "npm run tauri:build -w client",
+    "mobile:sync": "npm run mobile:sync -w client",
+    "mobile:android": "npm run mobile:android -w client",
+    "mobile:ios": "npm run mobile:ios -w client"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

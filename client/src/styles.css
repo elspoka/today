@@ -1,0 +1,437 @@
+:root {
+  font-family: "72", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--sapBackgroundColor);
+  color: var(--sapTextColor);
+}
+
+.fiori-layout {
+  min-height: 100vh;
+}
+
+.content-area {
+  padding: 1.5rem;
+  display: grid;
+  place-items: start center;
+}
+
+.fiori-card {
+  width: min(760px, 100%);
+  border-radius: 0.75rem;
+  background: var(--sapGroup_ContentBackground);
+  border: 1px solid var(--sapList_BorderColor);
+  padding: 1.2rem;
+  box-shadow: var(--sapContent_Shadow0);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--sapContent_LabelColor);
+}
+
+.auth-card {
+  max-width: 460px;
+}
+
+.auth-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.auth-form,
+.todo-create {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.todo-create {
+  grid-template-columns: 1fr auto;
+}
+
+.todo-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.todo-list {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.todo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.35rem 0.15rem;
+}
+
+.todo-row:not(:hover):not(:focus-within) .todo-delete-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.todo-delete-btn {
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.todo-label {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.todo-label span {
+  word-break: break-word;
+}
+
+.done {
+  text-decoration: line-through;
+  color: var(--sapContent_LabelColor);
+}
+
+.list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--sapList_BorderColor);
+}
+
+.list-tab-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.list-tab {
+  background: none;
+  border: 1px solid var(--sapList_BorderColor);
+  border-radius: 1rem;
+  padding: 0.3rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--sapContent_LabelColor);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.list-tab:hover {
+  background: var(--sapList_HoverBackground);
+  color: var(--sapTextColor);
+}
+
+.list-tab.active {
+  background: var(--sapButton_Emphasized_Background);
+  color: var(--sapButton_Emphasized_TextColor);
+  border-color: var(--sapButton_Emphasized_BorderColor);
+  font-weight: 600;
+}
+
+.list-tab-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sapContent_LabelColor);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.15rem 0 0.1rem;
+  margin-left: -0.3rem;
+  border-radius: 50%;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.list-tab-delete:hover {
+  opacity: 1;
+  color: var(--sapNegativeColor);
+}
+
+.list-tab-add {
+  border-style: dashed;
+}
+
+.list-tab-action {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 0.1rem;
+  margin-left: -0.25rem;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+
+.list-tab-action:hover {
+  opacity: 1;
+}
+
+.shared-badge {
+  font-size: 0.75rem;
+  margin-left: 0.25rem;
+}
+
+.share-panel {
+  border: 1px solid var(--sapList_BorderColor);
+  border-radius: 0.5rem;
+  background: var(--sapGroup_ContentBackground);
+  padding: 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.share-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.share-panel-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--sapContent_LabelColor);
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.share-panel-close:hover {
+  color: var(--sapNegativeColor);
+}
+
+.share-invite-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+.share-members-label {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.share-members {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.share-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.35rem;
+  background: var(--sapList_Background);
+  font-size: 0.9rem;
+}
+
+.share-member-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sapContent_LabelColor);
+  font-size: 1rem;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.share-member-remove:hover {
+  opacity: 1;
+  color: var(--sapNegativeColor);
+}
+
+.new-list-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* ── Profile menu ─────────────────────────────────────── */
+.profile-menu {
+  position: fixed;
+  top: 3rem;
+  right: 1rem;
+  z-index: 101;
+  width: min(280px, calc(100vw - 2rem));
+  background: var(--sapGroup_ContentBackground);
+  border: 1px solid var(--sapList_BorderColor);
+  border-radius: 0.5rem;
+  box-shadow: var(--sapContent_Shadow2, 0 4px 16px rgba(0,0,0,0.18));
+  overflow: hidden;
+}
+
+.profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.profile-avatar-large {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--sapButton_Emphasized_Background);
+  color: var(--sapButton_Emphasized_TextColor);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-email {
+  font-size: 0.875rem;
+  color: var(--sapTextColor);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu-divider {
+  height: 1px;
+  background: var(--sapList_BorderColor);
+  margin: 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--sapTextColor);
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.profile-menu-item:hover {
+  background: var(--sapList_HoverBackground);
+}
+
+.profile-signout {
+  color: var(--sapNegativeColor);
+}
+
+/* ── Notifications panel ──────────────────────────────── */
+.notifications-panel {
+  position: fixed;
+  top: 3rem;
+  right: 1rem;
+  z-index: 100;
+  width: min(360px, calc(100vw - 2rem));
+  background: var(--sapGroup_ContentBackground);
+  border: 1px solid var(--sapList_BorderColor);
+  border-radius: 0.5rem;
+  box-shadow: var(--sapContent_Shadow2, 0 4px 16px rgba(0,0,0,0.18));
+  overflow: hidden;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sapList_BorderColor);
+  background: var(--sapList_HeaderBackground);
+}
+
+.notifications-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--sapContent_LabelColor);
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+
+.notifications-close:hover {
+  color: var(--sapNegativeColor);
+}
+
+.notifications-empty {
+  padding: 1.25rem 1rem;
+  font-size: 0.875rem;
+  color: var(--sapContent_LabelColor);
+  text-align: center;
+}
+
+.notifications-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--sapList_BorderColor);
+  transition: background 0.1s;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.unread {
+  background: var(--sapList_SelectionBackgroundColor, rgba(0, 100, 220, 0.06));
+  border-left: 3px solid var(--sapButton_Emphasized_Background);
+}
+
+.notification-msg {
+  font-size: 0.9rem;
+  color: var(--sapTextColor);
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
