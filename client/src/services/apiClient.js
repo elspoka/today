@@ -21,11 +21,12 @@ export async function request(path, options = {}) {
     return null;
   }
 
-  const body = await response.json();
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw new Error(body.error || "Request failed");
+    throw new Error(body?.error || "Request failed");
   }
 
-  return body.data;
+  return body?.data ?? null;
 }

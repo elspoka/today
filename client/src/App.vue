@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
 import { fetchLists, createList, removeList, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
 import { authService, supabaseConfigError } from "./services/authService.js";
 import { fetchNotifications, markAllNotificationsRead } from "./services/notificationApi.js";
 
 const appVersion = __APP_VERSION__;
+const { t, locale } = useI18n();
 
 const todos = ref([]);
 const inputValue = ref("");
@@ -19,6 +21,22 @@ const password = ref("");
 const authLoading = ref(false);
 const authError = ref("");
 const authInfo = ref("");
+const language = ref("en");
+
+const languages = [
+  { key: "en", label: "English" },
+  { key: "de", label: "Deutsch" },
+  { key: "fr", label: "Français" },
+  { key: "es", label: "Español" },
+  { key: "nl", label: "Nederlands" },
+  { key: "el", label: "Ελληνικά" },
+];
+
+function updateLanguage(event) {
+  const lang = event.detail.selectedOption.value;
+  locale.value = lang;
+  document.documentElement.lang = lang;
+}
 
 const lists = ref([]);
 const activeListId = ref(null); // null = "All"
@@ -46,8 +64,8 @@ const isAuthenticated = computed(() => Boolean(session.value?.access_token));
 const accessToken = computed(() => session.value?.access_token ?? "");
 const userEmail = computed(() => session.value?.user?.email ?? "");
 const activeListName = computed(() => {
-  if (activeListId.value === null) return "All Tasks";
-  return lists.value.find((l) => l.id === activeListId.value)?.name ?? "Tasks";
+  if (activeListId.value === null) return t("todo.allTasks");
+  return lists.value.find((l) => l.id === activeListId.value)?.name ?? t("todo.allTasks");
 });
 const shareList = computed(() => lists.value.find((l) => l.id === shareListId.value) ?? null);
 
@@ -407,17 +425,17 @@ onUnmounted(() => {
         </div>
       </div>
       <div class="profile-menu-divider"></div>
-      <button class="profile-menu-item profile-signout" @click="signOut">Sign Out</button>
+      <button class="profile-menu-item profile-signout" @click="signOut">{{ $t('profile.signOut') }}</button>
     </div>
 
     <!-- Notifications panel -->
     <div v-if="showNotificationsPanel && isAuthenticated" class="notifications-panel">
       <div class="notifications-header">
-        <strong>Notifications</strong>
+        <strong>{{ $t('notifications.title') }}</strong>
         <button class="notifications-close" @click="showNotificationsPanel = false">×</button>
       </div>
       <div v-if="notifications.length === 0" class="notifications-empty">
-        No notifications yet.
+        {{ $t('notifications.empty') }}
       </div>
       <ul v-else class="notifications-list">
         <li
@@ -432,41 +450,56 @@ onUnmounted(() => {
       </ul>
     </div>
 
-    <section class="content-area">
+    <section class="content-area" :class="{ 'content-area--centered': !isAuthenticated }">
       <article v-if="!isAuthenticated" class="fiori-card auth-card">
-        <ui5-title level="H3">{{ authMode === "login" ? "Sign In" : "Register" }}</ui5-title>
-        <p class="subtitle">Use Supabase email/password or Google OAuth</p>
+        <div class="auth-brand">
+          <div class="auth-brand-icon">✓</div>
+          <ui5-title level="H2">To-Day</ui5-title>
+        </div>
+
+        <div>
+          <ui5-title level="H4">{{ authMode === 'login' ? $t('auth.loginTitle') : $t('auth.registerTitle') }}</ui5-title>
+          <p class="subtitle">{{ authMode === 'login' ? $t('auth.loginSubtitle') : $t('auth.registerSubtitle') }}</p>
+        </div>
 
         <div class="auth-switch">
           <ui5-button
             :design="authMode === 'login' ? 'Emphasized' : 'Transparent'"
             @click="authMode = 'login'"
           >
-            Login
+            {{ $t('auth.loginTab') }}
           </ui5-button>
           <ui5-button
             :design="authMode === 'register' ? 'Emphasized' : 'Transparent'"
             @click="authMode = 'register'"
           >
-            Register
+            {{ $t('auth.registerTab') }}
           </ui5-button>
         </div>
 
         <form class="auth-form" @submit.prevent="submitAuth">
-          <ui5-input
-            :value="email"
-            type="Email"
-            placeholder="Email"
-            @input="updateEmail"
-          />
-          <ui5-input
-            :value="password"
-            type="Password"
-            placeholder="Password"
-            @input="updatePassword"
-          />
+          <div class="auth-form-field">
+            <ui5-label for="auth-email" required>{{ $t('auth.emailLabel') }}</ui5-label>
+            <ui5-input
+              id="auth-email"
+              :value="email"
+              type="Email"
+              :placeholder="$t('auth.emailPlaceholder')"
+              @input="updateEmail"
+            />
+          </div>
+          <div class="auth-form-field">
+            <ui5-label for="auth-password" required>{{ $t('auth.passwordLabel') }}</ui5-label>
+            <ui5-input
+              id="auth-password"
+              :value="password"
+              type="Password"
+              placeholder="••••••••"
+              @input="updatePassword"
+            />
+          </div>
           <ui5-button design="Emphasized" type="Submit" :disabled="authLoading">
-            {{ authMode === "login" ? "Login" : "Create account" }}
+            {{ authMode === "login" ? $t('auth.loginBtn') : $t('auth.createAccountBtn') }}
           </ui5-button>
         </form>
 
@@ -480,13 +513,25 @@ onUnmounted(() => {
         <ui5-message-strip v-else-if="authInfo" design="Information" hide-close-button>
           {{ authInfo }}
         </ui5-message-strip>
+
+        <div class="auth-language">
+          <ui5-icon name="globe" class="auth-language-icon" />
+          <ui5-select @change="updateLanguage">
+            <ui5-option
+              v-for="lang in languages"
+              :key="lang.key"
+              :value="lang.key"
+              :selected="lang.key === locale"
+            >{{ lang.label }}</ui5-option>
+          </ui5-select>
+        </div>
       </article>
 
       <article v-else class="fiori-card todo-card">
         <header class="todo-header">
           <div>
             <ui5-title level="H3">{{ activeListName }}</ui5-title>
-            <p class="subtitle">{{ completedCount }} / {{ totalCount }} completed</p>
+            <p class="subtitle">{{ $t('todo.completed', { done: completedCount, total: totalCount }) }}</p>
           </div>
         </header>
 
@@ -497,7 +542,7 @@ onUnmounted(() => {
             :class="{ active: activeListId === null }"
             @click="selectList(null)"
           >
-            All
+            {{ $t('todo.all') }}
           </button>
           <div v-for="list in lists" :key="list.id" class="list-tab-wrap">
             <button
@@ -506,12 +551,12 @@ onUnmounted(() => {
               @click="selectList(list.id)"
             >
               {{ list.name }}
-              <span v-if="!list.isOwner" class="shared-badge" title="Shared with you">👥</span>
+              <span v-if="!list.isOwner" class="shared-badge" :title="$t('todo.sharedWithYou')">👥</span>
             </button>
             <button
               v-if="list.isOwner !== false"
               class="list-tab-action"
-              title="Share list"
+              :title="$t('todo.shareList')"
               @click.stop="openSharePanel(list.id)"
             >
               👥
@@ -519,7 +564,7 @@ onUnmounted(() => {
             <button
               v-if="list.isOwner !== false"
               class="list-tab-delete"
-              title="Delete list"
+              :title="$t('todo.deleteList')"
               @click.stop="deleteList(list.id)"
             >
               ×
@@ -528,57 +573,57 @@ onUnmounted(() => {
           <div v-if="showNewListInput" class="new-list-form">
             <ui5-input
               :value="newListName"
-              placeholder="List name"
+              :placeholder="$t('todo.listNamePlaceholder')"
               maxlength="100"
               @input="updateNewListName"
               @keydown.enter="addList"
               @keydown.escape="showNewListInput = false"
             />
-            <ui5-button design="Emphasized" :disabled="addingList" @click="addList">Add</ui5-button>
-            <ui5-button design="Transparent" @click="showNewListInput = false">Cancel</ui5-button>
+            <ui5-button design="Emphasized" :disabled="addingList" @click="addList">{{ $t('todo.add') }}</ui5-button>
+            <ui5-button design="Transparent" @click="showNewListInput = false">{{ $t('todo.cancel') }}</ui5-button>
           </div>
-          <button v-else class="list-tab list-tab-add" @click="showNewListInput = true">+ New list</button>
+          <button v-else class="list-tab list-tab-add" @click="showNewListInput = true">{{ $t('todo.newList') }}</button>
         </div>
 
         <!-- Share panel -->
         <div v-if="shareListId" class="share-panel">
           <div class="share-panel-header">
-            <strong>Share "{{ shareList?.name }}"</strong>
+            <strong>{{ $t('share.title', { name: shareList?.name }) }}</strong>
             <button class="share-panel-close" @click="closeSharePanel">×</button>
           </div>
           <div class="share-invite-form">
             <ui5-input
               :value="inviteEmail"
               type="Email"
-              placeholder="Invite by email address"
+              :placeholder="$t('share.invitePlaceholder')"
               @input="updateInviteEmail"
               @keydown.enter="sendInvite"
             />
-            <ui5-button design="Emphasized" :disabled="inviting" @click="sendInvite">Invite</ui5-button>
+            <ui5-button design="Emphasized" :disabled="inviting" @click="sendInvite">{{ $t('share.invite') }}</ui5-button>
           </div>
           <ui5-message-strip v-if="shareError" design="Negative" hide-close-button>
             {{ shareError }}
           </ui5-message-strip>
           <div v-if="shareMembers.length > 0" class="share-members">
-            <p class="share-members-label">Members with access:</p>
+            <p class="share-members-label">{{ $t('share.membersLabel') }}</p>
             <div v-for="member in shareMembers" :key="member.id" class="share-member-row">
               <span>{{ member.email }}</span>
-              <button class="share-member-remove" @click="kickMember(member.id)" title="Remove">×</button>
+              <button class="share-member-remove" @click="kickMember(member.id)" :title="$t('share.remove')">×</button>
             </div>
           </div>
-          <p v-else class="share-members-label">No members yet. Invite someone above.</p>
+          <p v-else class="share-members-label">{{ $t('share.noMembers') }}</p>
         </div>
 
         <form class="todo-create" @submit.prevent="addTodo">
           <ui5-input
             :value="inputValue"
             maxlength="200"
-            placeholder="What do you need to do?"
+              :placeholder="$t('todo.placeholder')"
             :disabled="submitting"
             @input="updateTodoInput"
           />
           <ui5-button icon="add" design="Emphasized" type="Submit" :disabled="submitting">
-            Add
+            {{ $t('todo.add') }}
           </ui5-button>
         </form>
 
@@ -588,7 +633,7 @@ onUnmounted(() => {
 
         <div v-else-if="loading" class="loading-wrap">
           <ui5-busy-indicator active size="Medium"></ui5-busy-indicator>
-          <span>Loading tasks...</span>
+          <span>{{ $t('todo.loading') }}</span>
         </div>
 
         <ui5-list v-else separators="Inner" class="todo-list">

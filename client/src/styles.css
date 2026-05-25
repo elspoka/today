@@ -28,6 +28,31 @@ body {
   place-items: start center;
 }
 
+.content-area--centered {
+  min-height: calc(100vh - 44px);
+  place-items: center;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding-bottom: 0.25rem;
+}
+
+.auth-brand-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--sapButton_Emphasized_Background);
+  color: var(--sapButton_Emphasized_TextColor);
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .fiori-card {
   width: min(760px, 100%);
   border-radius: 0.75rem;
@@ -46,6 +71,34 @@ body {
 
 .auth-card {
   max-width: 460px;
+  padding: 1.75rem;
+}
+
+.auth-form-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.auth-form-field ui5-input {
+  width: 100%;
+}
+
+.auth-language {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--sapList_BorderColor);
+}
+
+.auth-language-icon {
+  color: var(--sapContent_LabelColor);
+  font-size: 1rem;
+}
+
+.auth-language ui5-select {
+  min-width: 140px;
 }
 
 .auth-switch {
