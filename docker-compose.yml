@@ -30,6 +30,7 @@ services:
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
       CLIENT_ORIGIN: https://today.embitted.com
     networks:
+      - reverse-proxy
       - internal
 
 networks:
