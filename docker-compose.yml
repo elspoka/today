@@ -1,6 +1,6 @@
 services:
   client:
-    image: ghcr.io/elspoka/today-client:latest
+    image: ghcr.io/elspoka/today-client:main
     container_name: today-client
     restart: unless-stopped
     environment:
@@ -16,7 +16,7 @@ services:
       - internal
 
   server:
-    image: ghcr.io/elspoka/today-server:latest
+    image: ghcr.io/elspoka/today-server:main
     container_name: today-server
     restart: unless-stopped
     expose:
