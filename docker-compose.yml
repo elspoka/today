@@ -1,17 +1,26 @@
 services:
   client:
     image: ghcr.io/elspoka/today-client:latest
+    container_name: today-client
     restart: unless-stopped
-    ports:
-      - "3150:80"
+    environment:
+      - VIRTUAL_HOST=today.embitted.com
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=today.embitted.com
+    expose:
+      - "80"
     depends_on:
       - server
+    networks:
+      - reverse-proxy
+      - internal
 
   server:
     image: ghcr.io/elspoka/today-server:latest
+    container_name: today-server
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       PORT: 3000
       DB_PROVIDER: supabase
@@ -19,4 +28,12 @@ services:
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-      CLIENT_ORIGIN: http://localhost:3150
+      CLIENT_ORIGIN: https://today.embitted.com
+    networks:
+      - internal
+
+networks:
+  reverse-proxy:
+    external: true
+  internal:
+    driver: bridge
