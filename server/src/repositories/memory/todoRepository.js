@@ -23,6 +23,7 @@ export class InMemoryTodoRepository extends TodoRepository {
       userId,
       text,
       completed: false,
+      important: false,
       listId,
       createdAt: new Date().toISOString()
     };

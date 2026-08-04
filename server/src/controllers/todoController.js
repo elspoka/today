@@ -8,9 +8,10 @@ const todoSchema = z.object({
 const todoUpdateSchema = z
   .object({
     text: z.string().trim().min(1).max(200).optional(),
-    completed: z.boolean().optional()
+    completed: z.boolean().optional(),
+    important: z.boolean().optional()
   })
-  .refine((payload) => payload.text !== undefined || payload.completed !== undefined, {
+  .refine((payload) => payload.text !== undefined || payload.completed !== undefined || payload.important !== undefined, {
     message: "At least one property is required"
   });
 

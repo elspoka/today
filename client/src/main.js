@@ -19,6 +19,11 @@ import "@ui5/webcomponents-icons/dist/add.js";
 import "@ui5/webcomponents-icons/dist/globe.js";
 import "@ui5/webcomponents-icons/dist/delete.js";
 import "@ui5/webcomponents-icons/dist/log.js";
+import "@ui5/webcomponents-icons/dist/vertical-grip.js";
+import "@ui5/webcomponents-icons/dist/menu2.js";
+import "@ui5/webcomponents-icons/dist/warning.js";
+import "@ui5/webcomponents-icons/dist/flag.js";
+import "@ui5/webcomponents/dist/Icon.js";
 import "@ui5/webcomponents-fiori/dist/ShellBar.js";
 
 createApp(App).use(i18n).mount("#app");

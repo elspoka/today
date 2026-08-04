@@ -223,6 +223,18 @@ async function addTodo() {
   }
 }
 
+async function toggleImportant(todo, event) {
+  event?.currentTarget?.blur();
+  const original = todo.important;
+  todo.important = !todo.important;
+  try {
+    await patchTodo(todo.id, { important: todo.important });
+  } catch (err) {
+    todo.important = original;
+    error.value = err.message;
+  }
+}
+
 async function toggleTodo(todo) {
   const originalState = todo.completed;
   todo.completed = !todo.completed;
@@ -233,6 +245,36 @@ async function toggleTodo(todo) {
     todo.completed = originalState;
     error.value = err.message;
   }
+}
+
+const sortedTodos = computed(() =>
+  [...todos.value].sort((a, b) => (b.important ? 1 : 0) - (a.important ? 1 : 0))
+);
+
+const dragIndex = ref(null);
+const dragOverIndex = ref(null);
+
+function onDragStart(index) {
+  dragIndex.value = index;
+}
+
+function onDrop(index) {
+  if (dragIndex.value === null || dragIndex.value === index) {
+    dragIndex.value = null;
+    dragOverIndex.value = null;
+    return;
+  }
+  const items = [...sortedTodos.value];
+  const [moved] = items.splice(dragIndex.value, 1);
+  items.splice(index, 0, moved);
+  todos.value = items;
+  dragIndex.value = null;
+  dragOverIndex.value = null;
+}
+
+function onDragEnd() {
+  dragIndex.value = null;
+  dragOverIndex.value = null;
 }
 
 async function deleteItem(todoId) {
@@ -637,13 +679,32 @@ onUnmounted(() => {
         </div>
 
         <ui5-list v-else separators="Inner" class="todo-list">
-          <ui5-li-custom v-for="todo in todos" :key="todo.id">
-            <div class="todo-row">
+          <ui5-li-custom v-for="(todo, index) in sortedTodos" :key="todo.id">
+            <div
+              class="todo-row"
+              :class="{ 'todo-row--dragging': dragIndex === index, 'todo-row--drag-over': dragOverIndex === index }"
+              draggable="true"
+              @dragstart="onDragStart(index)"
+              @dragover.prevent="dragOverIndex = index"
+              @drop.prevent="onDrop(index)"
+              @dragend="onDragEnd"
+            >
+              <ui5-icon name="vertical-grip" class="todo-drag-handle" />
               <label class="todo-label">
                 <ui5-checkbox :checked="todo.completed" @change="toggleTodo(todo)"></ui5-checkbox>
                 <span :class="{ done: todo.completed }">{{ todo.text }}</span>
               </label>
-              <ui5-button class="todo-delete-btn" design="Transparent" icon="delete" @click="deleteItem(todo.id)" />
+              <ui5-icon v-if="dragIndex === index" name="menu2" class="todo-dragging-icon" />
+              <template v-else>
+                <ui5-button
+                  class="todo-important-btn"
+                  :class="{ 'todo-important-btn--active': todo.important }"
+                  design="Transparent"
+                  icon="flag"
+                  @click.stop="toggleImportant(todo, $event)"
+                />
+                <ui5-button class="todo-delete-btn" design="Transparent" icon="delete" @click="deleteItem(todo.id)" />
+              </template>
             </div>
           </ui5-li-custom>
         </ui5-list>

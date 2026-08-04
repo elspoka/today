@@ -145,9 +145,19 @@ body {
   padding: 0.35rem 0.15rem;
 }
 
-.todo-row:not(:hover):not(:focus-within) .todo-delete-btn {
+.todo-row:not(:hover):not(:focus-within) .todo-delete-btn,
+.todo-row:not(:hover):not(:focus-within) .todo-important-btn:not(.todo-important-btn--active) {
   opacity: 0;
   pointer-events: none;
+}
+
+.todo-important-btn {
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.todo-important-btn--active::part(button) {
+  color: var(--sapCriticalColor, #e9730c);
 }
 
 .todo-delete-btn {
@@ -155,11 +165,37 @@ body {
   transition: opacity 0.15s;
 }
 
+.todo-drag-handle {
+  flex-shrink: 0;
+  cursor: grab;
+  color: var(--sapContent_LabelColor);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.todo-row:hover .todo-drag-handle {
+  opacity: 1;
+}
+
+.todo-row--dragging {
+  opacity: 0.35;
+}
+
+.todo-dragging-icon {
+  flex-shrink: 0;
+  color: var(--sapSelectedColor, #0a6ed1);
+}
+
+.todo-row--drag-over {
+  border-top: 2px solid var(--sapSelectedColor, #0a6ed1);
+}
+
 .todo-label {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   min-width: 0;
+  flex: 1;
 }
 
 .todo-label span {

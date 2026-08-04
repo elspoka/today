@@ -26,7 +26,7 @@ export class SupabaseTodoRepository extends TodoRepository {
 
     let query = this.client
       .from(this.table)
-      .select("id, text, completed, list_id, created_at")
+      .select("id, text, completed, important, list_id, created_at")
       .or(userFilter)
       .order("created_at", { ascending: false });
 
@@ -68,6 +68,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       id: item.id,
       text: item.text,
       completed: item.completed,
+      important: item.important ?? false,
       listId: item.list_id,
       createdAt: item.created_at
     }));
@@ -109,6 +110,10 @@ export class SupabaseTodoRepository extends TodoRepository {
       updatePayload.completed = payload.completed;
     }
 
+    if (payload.important !== undefined) {
+      updatePayload.important = payload.important;
+    }
+
     const userFilter = memberListIds.length > 0
       ? `user_id.eq.${userId},list_id.in.(${memberListIds.join(",")})`
       : `user_id.eq.${userId}`;
@@ -118,7 +123,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       .update(updatePayload)
       .eq("id", id)
       .or(userFilter)
-      .select("id, text, completed, list_id, created_at")
+      .select("id, text, completed, important, list_id, created_at")
       .maybeSingle();
 
     if (error) {
@@ -151,6 +156,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       id: data.id,
       text: data.text,
       completed: data.completed,
+      important: data.important ?? false,
       listId: data.list_id,
       createdAt: data.created_at
     };
