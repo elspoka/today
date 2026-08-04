@@ -28,7 +28,7 @@ export function createListService(listRepository, listMembersRepository, notific
             member.userId,
             "list_shared",
             `${from} shared "${listName}" with you`,
-            { listId, listName }
+            { listId, listName, from }
           );
         } catch {
           // notification failure is non-fatal

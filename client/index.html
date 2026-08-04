@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
     <title>To-Day</title>
+    <!-- apply dark theme before Vue loads to avoid flash -->
+    <script>if(localStorage.getItem('darkMode')==='true')document.documentElement.setAttribute('data-ui5-theme','sap_horizon_dark')</script>
     <script defer src="https://umami.embitted.com/script.js" data-website-id="f0fcd372-96c0-40c8-a91b-b2b76439e55a"></script>
   </head>
   <body>

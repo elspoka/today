@@ -23,6 +23,7 @@ export default {
     title: "Meldingen",
     empty: "Nog geen meldingen.",
     delete: "Sluiten",
+    listShared: "Lijst met jou gedeeld",
   },
   todo: {
     allTasks: "Alle taken",

@@ -500,6 +500,12 @@ body {
   text-align: center;
 }
 
+.notif-timestamp {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 540px) {
   .content-area {
     padding: 0.75rem;

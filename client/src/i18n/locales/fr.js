@@ -23,6 +23,7 @@ export default {
     title: "Notifications",
     empty: "Pas encore de notifications.",
     delete: "Ignorer",
+    listShared: "Liste partagée avec vous",
   },
   todo: {
     allTasks: "Toutes les tâches",

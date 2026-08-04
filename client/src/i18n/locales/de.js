@@ -23,6 +23,7 @@ export default {
     title: "Benachrichtigungen",
     empty: "Noch keine Benachrichtigungen.",
     delete: "Schließen",
+    listShared: "Liste mit Ihnen geteilt",
   },
   todo: {
     allTasks: "Alle Aufgaben",

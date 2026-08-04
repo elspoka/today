@@ -44,7 +44,9 @@ const language = ref("en");
 const darkMode = ref(localStorage.getItem("darkMode") === "true");
 
 function applyTheme() {
-  setTheme(darkMode.value ? "sap_horizon_dark" : "sap_horizon");
+  const theme = darkMode.value ? "sap_horizon_dark" : "sap_horizon";
+  document.documentElement.setAttribute("data-ui5-theme", theme);
+  setTheme(theme);
 }
 
 function toggleDarkMode(event) {
@@ -153,11 +155,12 @@ async function loadNotifications() {
 }
 
 async function onNotificationsClick(event) {
-  profilePopoverRef.value?.close();
+  profilePopoverRef.value.open = false;
   if (notifPopoverRef.value?.open) {
-    notifPopoverRef.value.close();
+    notifPopoverRef.value.open = false;
   } else {
-    notifPopoverRef.value?.showAt(event.detail.targetRef);
+    notifPopoverRef.value.opener = event.detail.targetRef;
+    notifPopoverRef.value.open = true;
     if (unreadCount.value > 0) {
       await markAllNotificationsRead();
       notifications.value = notifications.value.map((n) => ({ ...n, read: true }));
@@ -166,11 +169,12 @@ async function onNotificationsClick(event) {
 }
 
 function onProfileClick(event) {
-  notifPopoverRef.value?.close();
+  notifPopoverRef.value.open = false;
   if (profilePopoverRef.value?.open) {
-    profilePopoverRef.value.close();
+    profilePopoverRef.value.open = false;
   } else {
-    profilePopoverRef.value?.showAt(event.detail.targetRef);
+    profilePopoverRef.value.opener = event.detail.targetRef;
+    profilePopoverRef.value.open = true;
   }
 }
 
@@ -401,6 +405,11 @@ async function deleteItem(todoId) {
   }
 }
 
+function notifTitle(n) {
+  if (n.type === "list_shared") return t("notifications.listShared");
+  return t("notifications.title");
+}
+
 async function removeNotification(id) {
   notifications.value = notifications.value.filter((n) => n.id !== id);
   try {
@@ -521,7 +530,7 @@ async function signUp() {
 // }
 
 async function signOut() {
-  showProfileMenu.value = false;
+  profilePopoverRef.value.open = false;
   unsubscribeFromRealtime();
   await authService.signOut();
   todos.value = [];
@@ -691,12 +700,15 @@ onUnmounted(() => {
           <ui5-notification-list-item
             v-for="n in notifications"
             :key="n.id"
-            :title-text="n.message"
+            :title-text="notifTitle(n)"
             :read="n.read"
             show-close
             wrapping-type="Normal"
             @close="removeNotification(n.id)"
-          >{{ new Date(n.createdAt).toLocaleString() }}</ui5-notification-list-item>
+          >
+            <div>{{ n.message }}</div>
+            <div class="notif-timestamp">{{ new Date(n.createdAt).toLocaleString() }}</div>
+          </ui5-notification-list-item>
         </ui5-notification-list>
       </div>
     </ui5-popover>
