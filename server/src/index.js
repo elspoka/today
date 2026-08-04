@@ -17,6 +17,7 @@ import { createNotificationService } from "./services/notificationService.js";
 import { createTodoRouter } from "./routes/todoRoutes.js";
 import { createListRouter } from "./routes/listRoutes.js";
 import { createNotificationRouter } from "./routes/notificationRoutes.js";
+import logger from "./logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,7 +72,7 @@ app.use("/api/lists", requireAuth, createListRouter(listService));
 app.use("/api/notifications", requireAuth, createNotificationRouter(notificationService));
 
 app.use((err, _req, res, _next) => {
-  console.error(err);
+  logger.error({ err }, "Unhandled request error");
   const statusCode = err.statusCode ?? 500;
   const errorMessage =
     err.publicMessage ?? (process.env.NODE_ENV === "production" ? "Internal server error" : err.message);
@@ -80,5 +81,14 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  logger.info({ port: PORT, db: settings.dbProvider }, "Server running");
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error({ reason }, "Unhandled promise rejection");
+});
+
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err }, "Uncaught exception — shutting down");
+  process.exit(1);
 });
