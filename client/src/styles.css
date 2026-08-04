@@ -134,6 +134,7 @@ body {
 .todo-list {
   border-radius: 0.5rem;
   overflow: hidden;
+  padding: 0 2px;
 }
 
 .todo-row {
@@ -168,6 +169,7 @@ body {
 .todo-drag-handle {
   flex-shrink: 0;
   cursor: grab;
+  touch-action: none;
   color: var(--sapContent_LabelColor);
   opacity: 0;
   transition: opacity 0.15s;
@@ -243,6 +245,25 @@ body {
 .list-select-compact {
   flex: 1;
   min-width: 0;
+  appearance: auto;
+  background: var(--sapField_Background, #fff);
+  border: 1px solid var(--sapField_BorderColor, #89919a);
+  border-radius: 0.25rem;
+  padding: 0.4rem 2rem 0.4rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--sapTextColor);
+  cursor: pointer;
+  height: 2.25rem;
+}
+
+.list-select-compact:hover {
+  border-color: var(--sapField_Hover_BorderColor, #0854a0);
+}
+
+.list-select-compact:focus {
+  outline: 2px solid var(--sapField_Hover_BorderColor, #0854a0);
+  outline-offset: -1px;
 }
 
 .share-panel {
@@ -514,4 +535,37 @@ body {
 .notification-time {
   font-size: 0.75rem;
   color: var(--sapContent_LabelColor);
+}
+
+@media (max-width: 540px) {
+  .content-area {
+    padding: 0.75rem;
+  }
+
+  .fiori-card {
+    padding: 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  .todo-header {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .todo-header-controls {
+    flex: none;
+    width: 100%;
+    padding-left: 0;
+  }
+
+  /* always show drag handle on touch so users can reorder */
+  .todo-drag-handle {
+    opacity: 1;
+    padding: 0.25rem;
+  }
+
+  /* align checkbox to top when text wraps */
+  .todo-label {
+    align-items: flex-start;
+  }
 }

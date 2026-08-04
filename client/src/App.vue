@@ -141,7 +141,7 @@ async function selectList(listId) {
 }
 
 function onListSelectChange(event) {
-  const value = event.detail?.selectedOption?.value || null;
+  const value = event.target.value || null;
   selectList(value || null);
 }
 
@@ -303,6 +303,33 @@ function onDrop(index) {
 function onDragEnd() {
   dragIndex.value = null;
   dragOverIndex.value = null;
+}
+
+function onTouchStart(event, index) {
+  event.preventDefault();
+  dragIndex.value = index;
+  dragOverIndex.value = index;
+  document.addEventListener('touchmove', onTouchMove, { passive: false });
+  document.addEventListener('touchend', onTouchEnd, { once: true });
+}
+
+function onTouchMove(event) {
+  event.preventDefault();
+  const touch = event.touches[0];
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!el) return;
+  const row = el.closest('[data-todo-index]');
+  if (row) dragOverIndex.value = parseInt(row.dataset.todoIndex, 10);
+}
+
+function onTouchEnd() {
+  document.removeEventListener('touchmove', onTouchMove);
+  if (dragIndex.value !== null && dragOverIndex.value !== null) {
+    onDrop(dragOverIndex.value);
+  } else {
+    dragIndex.value = null;
+    dragOverIndex.value = null;
+  }
 }
 
 async function deleteItem(todoId) {
@@ -627,15 +654,15 @@ onUnmounted(() => {
             <p class="subtitle">{{ $t('todo.completed', { done: completedCount, total: totalCount }) }}</p>
           </div>
           <div class="todo-header-controls">
-            <ui5-select class="list-select-compact" @change="onListSelectChange">
-              <ui5-option value="" :selected="activeListId === null">{{ $t('todo.all') }}</ui5-option>
-              <ui5-option
+            <select class="list-select-compact" @change="onListSelectChange">
+              <option value="" :selected="activeListId === null">{{ $t('todo.all') }}</option>
+              <option
                 v-for="list in lists"
                 :key="list.id"
                 :value="list.id"
                 :selected="activeListId === list.id"
-              >{{ list.name }}{{ !list.isOwner ? ' 👥' : '' }}</ui5-option>
-            </ui5-select>
+              >{{ list.name }}{{ !list.isOwner ? ' 👥' : '' }}</option>
+            </select>
             <ui5-button
               v-if="activeListId && activeList?.isOwner !== false"
               design="Transparent"
@@ -725,6 +752,7 @@ onUnmounted(() => {
           <ui5-li-custom v-for="(todo, index) in sortedTodos" :key="todo.id">
             <div
               class="todo-row"
+              :data-todo-index="index"
               :class="{ 'todo-row--dragging': dragIndex === index, 'todo-row--drag-over': dragOverIndex === index }"
               draggable="true"
               @dragstart="onDragStart(index)"
@@ -732,7 +760,7 @@ onUnmounted(() => {
               @drop.prevent="onDrop(index)"
               @dragend="onDragEnd"
             >
-              <ui5-icon name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" />
+              <ui5-icon name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" @touchstart.prevent="onTouchStart($event, index)" />
               <label class="todo-label">
                 <ui5-checkbox
                   :checked="todo.completed"
