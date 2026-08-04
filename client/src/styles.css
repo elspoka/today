@@ -207,6 +207,7 @@ body {
 .todo-swipe-wrapper {
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .todo-swipe-bg {
