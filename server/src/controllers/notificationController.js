@@ -13,6 +13,11 @@ export function createNotificationController(notificationService) {
     async markAllRead(req, res) {
       await notificationService.markAllRead(req.user.id);
       res.status(204).send();
+    },
+
+    async deleteOne(req, res) {
+      await notificationService.deleteNotification(req.params.id, req.user.id);
+      res.status(204).send();
     }
   };
 }

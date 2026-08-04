@@ -16,10 +16,13 @@ export default {
     signOut: "Cerrar sesión",
     privacyPolicy: "Política de privacidad",
     terms: "Términos de servicio",
+    darkMode: "Modo oscuro",
+    lightMode: "Modo claro",
   },
   notifications: {
     title: "Notificaciones",
     empty: "Aún no hay notificaciones.",
+    delete: "Descartar",
   },
   todo: {
     allTasks: "Todas las tareas",
@@ -59,5 +62,6 @@ export default {
     listCreated: "Lista creada",
     listDeleted: "Lista eliminada",
     inviteSent: "Invitación enviada",
+    notificationDeleted: "Notificación descartada",
   },
 };

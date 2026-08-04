@@ -14,6 +14,10 @@ export function createNotificationService(notificationRepository) {
 
     async markAllRead(userId) {
       return notificationRepository.markAllRead(userId);
+    },
+
+    async deleteNotification(notificationId, userId) {
+      return notificationRepository.deleteOne(notificationId, userId);
     }
   };
 }

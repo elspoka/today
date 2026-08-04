@@ -16,10 +16,13 @@ export default {
     signOut: "Sign Out",
     privacyPolicy: "Privacy Policy",
     terms: "Terms of Service",
+    darkMode: "Dark Mode",
+    lightMode: "Light Mode",
   },
   notifications: {
     title: "Notifications",
     empty: "No notifications yet.",
+    delete: "Dismiss",
   },
   todo: {
     allTasks: "All Tasks",
@@ -59,5 +62,6 @@ export default {
     listCreated: "List created",
     listDeleted: "List deleted",
     inviteSent: "Invitation sent",
+    notificationDeleted: "Notification dismissed",
   },
 };

@@ -16,10 +16,13 @@ export default {
     signOut: "Se déconnecter",
     privacyPolicy: "Politique de confidentialité",
     terms: "Conditions d'utilisation",
+    darkMode: "Mode sombre",
+    lightMode: "Mode clair",
   },
   notifications: {
     title: "Notifications",
     empty: "Pas encore de notifications.",
+    delete: "Ignorer",
   },
   todo: {
     allTasks: "Toutes les tâches",
@@ -59,5 +62,6 @@ export default {
     listCreated: "Liste créée",
     listDeleted: "Liste supprimée",
     inviteSent: "Invitation envoyée",
+    notificationDeleted: "Notification ignorée",
   },
 };

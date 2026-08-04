@@ -204,6 +204,34 @@ body {
   word-break: break-word;
 }
 
+.todo-swipe-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.todo-swipe-bg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.todo-swipe-bg--complete {
+  justify-content: flex-start;
+  padding-left: 1rem;
+  background: var(--sapPositiveColor, #188918);
+  color: #fff;
+}
+
+.todo-swipe-bg--delete {
+  justify-content: flex-end;
+  padding-right: 1rem;
+  background: var(--sapNegativeColor, #bb0000);
+  color: #fff;
+}
+
 .todo-list-badge {
   font-size: 0.7rem;
   padding: 0.1rem 0.5rem;
@@ -511,11 +539,50 @@ body {
 
 .notification-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  align-items: flex-start;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--sapList_BorderColor);
   transition: background 0.1s;
+}
+
+.notification-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--sapContent_LabelColor);
+  font-size: 1.1rem;
+  padding: 0 0.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.notification-delete-btn:hover {
+  opacity: 1;
+  color: var(--sapNegativeColor);
+}
+
+.profile-darkmode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+  color: var(--sapTextColor);
+  text-align: left;
 }
 
 .notification-item:last-child {

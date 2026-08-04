@@ -16,10 +16,13 @@ export default {
     signOut: "Uitloggen",
     privacyPolicy: "Privacybeleid",
     terms: "Gebruiksvoorwaarden",
+    darkMode: "Donkere modus",
+    lightMode: "Lichte modus",
   },
   notifications: {
     title: "Meldingen",
     empty: "Nog geen meldingen.",
+    delete: "Sluiten",
   },
   todo: {
     allTasks: "Alle taken",
@@ -59,5 +62,6 @@ export default {
     listCreated: "Lijst aangemaakt",
     listDeleted: "Lijst verwijderd",
     inviteSent: "Uitnodiging verzonden",
+    notificationDeleted: "Melding gesloten",
   },
 };

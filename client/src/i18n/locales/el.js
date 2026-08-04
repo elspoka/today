@@ -16,10 +16,13 @@ export default {
     signOut: "Αποσύνδεση",
     privacyPolicy: "Πολιτική Απορρήτου",
     terms: "Όροι Χρήσης",
+    darkMode: "Σκοτεινή λειτουργία",
+    lightMode: "Φωτεινή λειτουργία",
   },
   notifications: {
     title: "Ειδοποιήσεις",
     empty: "Δεν υπάρχουν ειδοποιήσεις ακόμα.",
+    delete: "Απόρριψη",
   },
   todo: {
     allTasks: "Όλες οι εργασίες",
@@ -59,5 +62,6 @@ export default {
     listCreated: "Λίστα δημιουργήθηκε",
     listDeleted: "Λίστα διαγράφηκε",
     inviteSent: "Πρόσκληση εστάλη",
+    notificationDeleted: "Ειδοποίηση απορρίφθηκε",
   },
 };

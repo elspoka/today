@@ -16,10 +16,13 @@ export default {
     signOut: "Abmelden",
     privacyPolicy: "Datenschutzerklärung",
     terms: "Nutzungsbedingungen",
+    darkMode: "Dunkelmodus",
+    lightMode: "Hellmodus",
   },
   notifications: {
     title: "Benachrichtigungen",
     empty: "Noch keine Benachrichtigungen.",
+    delete: "Schließen",
   },
   todo: {
     allTasks: "Alle Aufgaben",
@@ -59,5 +62,6 @@ export default {
     listCreated: "Liste erstellt",
     listDeleted: "Liste gelöscht",
     inviteSent: "Einladung gesendet",
+    notificationDeleted: "Benachrichtigung geschlossen",
   },
 };

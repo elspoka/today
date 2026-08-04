@@ -1,10 +1,12 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
 import { fetchLists, createList, removeList, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
 import { authService, supabaseConfigError } from "./services/authService.js";
-import { fetchNotifications, markAllNotificationsRead } from "./services/notificationApi.js";
+import { supabase } from "./providers/supabase.js";
+import { fetchNotifications, markAllNotificationsRead, deleteNotification as deleteNotificationApi } from "./services/notificationApi.js";
 
 const appVersion = __APP_VERSION__;
 const { t, locale } = useI18n();
@@ -38,6 +40,52 @@ const authLoading = ref(false);
 const authError = ref("");
 const authInfo = ref("");
 const language = ref("en");
+
+const darkMode = ref(localStorage.getItem("darkMode") === "true");
+
+function applyTheme() {
+  setTheme(darkMode.value ? "sap_horizon_dark" : "sap_horizon");
+}
+
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value;
+  localStorage.setItem("darkMode", String(darkMode.value));
+  applyTheme();
+}
+
+// Swipe gesture state (mobile complete/delete)
+const swipe = ref(null); // { id, startX, startY, dx, active }
+
+function onSwipeTouchStart(e, todo) {
+  if (e.target.closest(".todo-drag-handle")) return;
+  const t = e.touches[0];
+  swipe.value = { id: todo.id, startX: t.clientX, startY: t.clientY, dx: 0, active: false };
+}
+
+function onSwipeTouchMove(e) {
+  if (!swipe.value) return;
+  const t = e.touches[0];
+  const dx = t.clientX - swipe.value.startX;
+  const dy = t.clientY - swipe.value.startY;
+  if (!swipe.value.active) {
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+    if (Math.abs(dy) > Math.abs(dx)) { swipe.value = null; return; }
+    swipe.value = { ...swipe.value, active: true };
+  }
+  swipe.value = { ...swipe.value, dx };
+}
+
+function onSwipeTouchEnd() {
+  if (!swipe.value?.active) { swipe.value = null; return; }
+  const { id, dx } = swipe.value;
+  swipe.value = null;
+  if (dx > 80) {
+    const todo = todos.value.find((t) => t.id === id);
+    if (todo) toggleTodo(todo);
+  } else if (dx < -80) {
+    deleteItem(id);
+  }
+}
 
 const languages = [
   { key: "en", label: "English" },
@@ -345,6 +393,58 @@ async function deleteItem(todoId) {
   }
 }
 
+async function removeNotification(id) {
+  notifications.value = notifications.value.filter((n) => n.id !== id);
+  try {
+    await deleteNotificationApi(id);
+    showToast(t('toast.notificationDeleted'));
+  } catch {
+    await loadNotifications();
+  }
+}
+
+function mapDbTodo(row) {
+  return {
+    id: row.id,
+    text: row.text,
+    completed: row.completed,
+    important: row.important ?? false,
+    listId: row.list_id ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+let realtimeChannel = null;
+
+function subscribeToRealtime() {
+  if (!supabase) return;
+  realtimeChannel = supabase
+    .channel("app-realtime")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
+      loadNotifications();
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "todos" }, (payload) => {
+      if (payload.eventType === "INSERT") {
+        const t = mapDbTodo(payload.new);
+        const belongs = activeListId.value === null || t.listId === activeListId.value;
+        if (belongs && !todos.value.find((x) => x.id === t.id)) todos.value = [t, ...todos.value];
+      } else if (payload.eventType === "UPDATE") {
+        const t = mapDbTodo(payload.new);
+        todos.value = todos.value.map((x) => (x.id === t.id ? t : x));
+      } else if (payload.eventType === "DELETE") {
+        todos.value = todos.value.filter((x) => x.id !== payload.old.id);
+      }
+    })
+    .subscribe();
+}
+
+function unsubscribeFromRealtime() {
+  if (realtimeChannel) {
+    supabase?.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+}
+
 async function signIn() {
   if (supabaseConfigError) {
     authError.value = supabaseConfigError;
@@ -414,6 +514,7 @@ async function signUp() {
 
 async function signOut() {
   showProfileMenu.value = false;
+  unsubscribeFromRealtime();
   await authService.signOut();
   todos.value = [];
   lists.value = [];
@@ -458,6 +559,8 @@ async function submitAuth() {
 let authSubscription;
 
 onMounted(async () => {
+  applyTheme();
+
   if (supabaseConfigError) {
     authError.value = supabaseConfigError;
     return;
@@ -473,6 +576,7 @@ onMounted(async () => {
     await loadLists();
     await loadTodos();
     await loadNotifications();
+    subscribeToRealtime();
   }
 
   const {
@@ -484,10 +588,12 @@ onMounted(async () => {
       await loadLists();
       await loadTodos();
       await loadNotifications();
+      subscribeToRealtime();
     } else {
       todos.value = [];
       lists.value = [];
       notifications.value = [];
+      unsubscribeFromRealtime();
     }
   });
 
@@ -496,6 +602,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   authSubscription?.unsubscribe();
+  unsubscribeFromRealtime();
 });
 </script>
 
@@ -545,6 +652,11 @@ onUnmounted(() => {
         </ui5-select>
       </div>
       <div class="profile-menu-divider"></div>
+      <button class="profile-menu-item profile-darkmode" @click="toggleDarkMode">
+        <ui5-icon :name="darkMode ? 'light-mode' : 'dark-mode'" class="profile-menu-item-icon" />
+        {{ darkMode ? $t('profile.lightMode') : $t('profile.darkMode') }}
+      </button>
+      <div class="profile-menu-divider"></div>
       <button class="profile-menu-item profile-signout" @click="signOut">{{ $t('profile.signOut') }}</button>
     </div>
 
@@ -564,8 +676,11 @@ onUnmounted(() => {
           class="notification-item"
           :class="{ unread: !n.read }"
         >
-          <span class="notification-msg">{{ n.message }}</span>
-          <span class="notification-time">{{ new Date(n.createdAt).toLocaleString() }}</span>
+          <div class="notification-body">
+            <span class="notification-msg">{{ n.message }}</span>
+            <span class="notification-time">{{ new Date(n.createdAt).toLocaleString() }}</span>
+          </div>
+          <button class="notification-delete-btn" :title="$t('notifications.delete')" @click="removeNotification(n.id)">×</button>
         </li>
       </ul>
     </div>
@@ -733,6 +848,8 @@ onUnmounted(() => {
               :placeholder="$t('todo.placeholder')"
             :disabled="submitting"
             @input="updateTodoInput"
+            @keydown.enter="addTodo"
+            @keydown.escape="inputValue = ''"
           />
           <ui5-button icon="add" design="Emphasized" type="Submit" :disabled="submitting">
             {{ $t('todo.add') }}
@@ -751,15 +868,24 @@ onUnmounted(() => {
         <ui5-list v-else separators="Inner" class="todo-list">
           <ui5-li-custom v-for="(todo, index) in sortedTodos" :key="todo.id">
             <div
-              class="todo-row"
-              :data-todo-index="index"
-              :class="{ 'todo-row--dragging': dragIndex === index, 'todo-row--drag-over': dragOverIndex === index }"
-              draggable="true"
-              @dragstart="onDragStart(index)"
-              @dragover.prevent="dragOverIndex = index"
-              @drop.prevent="onDrop(index)"
-              @dragend="onDragEnd"
+              class="todo-swipe-wrapper"
+              @touchstart.passive="onSwipeTouchStart($event, todo)"
+              @touchmove.passive="onSwipeTouchMove"
+              @touchend="onSwipeTouchEnd"
             >
+              <div v-if="swipe?.id === todo.id && swipe.dx > 20" class="todo-swipe-bg todo-swipe-bg--complete">✓</div>
+              <div v-if="swipe?.id === todo.id && swipe.dx < -20" class="todo-swipe-bg todo-swipe-bg--delete">🗑</div>
+              <div
+                class="todo-row"
+                :data-todo-index="index"
+                :class="{ 'todo-row--dragging': dragIndex === index, 'todo-row--drag-over': dragOverIndex === index }"
+                :style="swipe?.id === todo.id ? { transform: `translateX(${swipe.dx}px)`, transition: 'none', background: 'var(--sapList_Background)' } : {}"
+                draggable="true"
+                @dragstart="onDragStart(index)"
+                @dragover.prevent="dragOverIndex = index"
+                @drop.prevent="onDrop(index)"
+                @dragend="onDragEnd"
+              >
               <ui5-icon name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" @touchstart.prevent="onTouchStart($event, index)" />
               <label class="todo-label">
                 <ui5-checkbox
@@ -783,6 +909,7 @@ onUnmounted(() => {
                 />
                 <ui5-button class="todo-delete-btn" design="Transparent" icon="delete" :title="$t('todo.deleteTodo')" @click="deleteItem(todo.id)" />
               </template>
+            </div>
             </div>
           </ui5-li-custom>
         </ui5-list>

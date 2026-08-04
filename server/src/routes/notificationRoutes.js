@@ -8,6 +8,7 @@ export function createNotificationRouter(notificationService) {
   router.get("/", controller.getAll);
   router.patch("/:id/read", controller.markRead);
   router.post("/read-all", controller.markAllRead);
+  router.delete("/:id", controller.deleteOne);
 
   return router;
 }

@@ -14,4 +14,8 @@ export class NotificationRepository {
   async markAllRead(_userId) {
     throw new Error("Not implemented");
   }
+
+  async deleteOne(_notificationId, _userId) {
+    throw new Error("Not implemented");
+  }
 }

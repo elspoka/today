@@ -73,4 +73,15 @@ export class SupabaseNotificationRepository extends NotificationRepository {
     if (error) throw new Error(error.message);
     return true;
   }
+
+  async deleteOne(notificationId, userId) {
+    const { error } = await this.client
+      .from(this.table)
+      .delete()
+      .eq("id", notificationId)
+      .eq("user_id", userId);
+
+    if (error) throw new Error(error.message);
+    return true;
+  }
 }
