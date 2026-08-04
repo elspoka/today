@@ -467,6 +467,18 @@ onUnmounted(() => {
         </div>
       </div>
       <div class="profile-menu-divider"></div>
+      <div class="profile-menu-item profile-menu-language">
+        <ui5-icon name="globe" class="profile-menu-language-icon" />
+        <ui5-select @change="updateLanguage">
+          <ui5-option
+            v-for="lang in languages"
+            :key="lang.key"
+            :value="lang.key"
+            :selected="lang.key === locale"
+          >{{ lang.label }}</ui5-option>
+        </ui5-select>
+      </div>
+      <div class="profile-menu-divider"></div>
       <button class="profile-menu-item profile-signout" @click="signOut">{{ $t('profile.signOut') }}</button>
     </div>
 

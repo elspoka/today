@@ -445,6 +445,24 @@ body {
   color: var(--sapNegativeColor);
 }
 
+.profile-menu-language {
+  gap: 0.6rem;
+  cursor: default;
+}
+
+.profile-menu-language:hover {
+  background: none;
+}
+
+.profile-menu-language-icon {
+  flex-shrink: 0;
+  color: var(--sapContent_LabelColor);
+}
+
+.profile-menu-language ui5-select {
+  flex: 1;
+}
+
 /* ── Notifications panel ──────────────────────────────── */
 .notifications-panel {
   position: fixed;
