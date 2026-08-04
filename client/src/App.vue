@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
-import { fetchLists, createList, removeList, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
+import { fetchLists, createList, removeList, leaveList as leaveListApi, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
 import { authService, supabaseConfigError } from "./services/authService.js";
 import { supabase } from "./providers/supabase.js";
 import { fetchNotifications, markAllNotificationsRead, deleteNotification as deleteNotificationApi } from "./services/notificationApi.js";
@@ -229,10 +229,19 @@ async function deleteList(listId) {
     await removeList(listId);
     lists.value = lists.value.filter((l) => l.id !== listId);
     if (shareListId.value === listId) shareListId.value = null;
-    if (activeListId.value === listId) {
-      await selectList(null);
-    }
+    if (activeListId.value === listId) await selectList(null);
     showToast(t('toast.listDeleted'));
+  } catch (err) {
+    error.value = err.message;
+  }
+}
+
+async function leaveListAction(listId) {
+  try {
+    await leaveListApi(listId);
+    lists.value = lists.value.filter((l) => l.id !== listId);
+    if (activeListId.value === listId) await selectList(null);
+    showToast(t('toast.listLeft'));
   } catch (err) {
     error.value = err.message;
   }
@@ -819,6 +828,13 @@ onUnmounted(() => {
               icon="delete"
               :title="$t('todo.deleteList')"
               @click="deleteList(activeListId)"
+            />
+            <ui5-button
+              v-if="activeListId && activeList?.isOwner === false"
+              design="Transparent"
+              icon="decline"
+              :title="$t('todo.leaveList')"
+              @click="leaveListAction(activeListId)"
             />
             <ui5-button design="Transparent" icon="add" :title="$t('todo.newList')" @click="showNewListInput = true" />
           </div>

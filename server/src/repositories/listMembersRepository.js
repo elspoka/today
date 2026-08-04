@@ -11,6 +11,10 @@ export class ListMembersRepository {
     throw new Error("Not implemented");
   }
 
+  async leave(_userId, _listId) {
+    throw new Error("Not implemented");
+  }
+
   async isMember(_userId, _listId) {
     throw new Error("Not implemented");
   }

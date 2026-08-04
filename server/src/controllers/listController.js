@@ -56,6 +56,14 @@ export function createListController(listService) {
       }
     },
 
+    async leave(req, res) {
+      const isLeft = await listService.leaveList(req.user.id, req.params.id);
+      if (!isLeft) {
+        return res.status(404).json({ error: "Not a member of this list" });
+      }
+      return res.status(204).send();
+    },
+
     async removeMember(req, res) {
       const isDeleted = await listService.removeMember(req.params.id, req.params.memberId);
 

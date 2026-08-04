@@ -33,6 +33,13 @@ export class InMemoryListMembersRepository extends ListMembersRepository {
     return this.members.filter((m) => m.listId === listId);
   }
 
+  async leave(userId, listId) {
+    const index = this.members.findIndex((m) => m.userId === userId && m.listId === listId);
+    if (index === -1) return false;
+    this.members.splice(index, 1);
+    return true;
+  }
+
   async removeMember(listId, memberId) {
     const index = this.members.findIndex(
       (m) => m.id === memberId && m.listId === listId

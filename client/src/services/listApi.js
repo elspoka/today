@@ -28,6 +28,10 @@ export function inviteToList(listId, email) {
   });
 }
 
+export function leaveList(id) {
+  return request(`/lists/${id}/leave`, { method: 'DELETE' });
+}
+
 export function removeMember(listId, memberId) {
   return request(`/lists/${listId}/members/${memberId}`, {
     method: "DELETE"

@@ -38,6 +38,10 @@ export function createListService(listRepository, listMembersRepository, notific
       return member;
     },
 
+    async leaveList(userId, listId) {
+      return listMembersRepository.leave(userId, listId);
+    },
+
     async removeMember(listId, memberId) {
       return listMembersRepository.removeMember(listId, memberId);
     }

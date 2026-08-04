@@ -72,6 +72,22 @@ export class SupabaseListMembersRepository extends ListMembersRepository {
     }));
   }
 
+  async leave(userId, listId) {
+    const { data, error } = await this.client
+      .from(this.table)
+      .delete()
+      .eq("user_id", userId)
+      .eq("list_id", listId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      if (this._isTableMissing(error)) return false;
+      throw new Error(error.message);
+    }
+    return Boolean(data);
+  }
+
   async removeMember(listId, memberId) {
     const { data, error } = await this.client
       .from(this.table)
