@@ -14,6 +14,8 @@ export default {
   },
   profile: {
     signOut: "Uitloggen",
+    privacyPolicy: "Privacybeleid",
+    terms: "Gebruiksvoorwaarden",
   },
   notifications: {
     title: "Meldingen",
@@ -32,6 +34,12 @@ export default {
     newList: "+ Nieuwe lijst",
     loading: "Taken laden...",
     placeholder: "Wat moet u doen?",
+    dragToReorder: "Slepen om te herordenen",
+    markImportant: "Markeren als belangrijk",
+    removeImportant: "Markering verwijderen",
+    deleteTodo: "Taak verwijderen",
+    markComplete: "Markeren als voltooid",
+    markIncomplete: "Markeren als onvoltooid",
   },
   share: {
     title: '"{name}" delen',
@@ -40,5 +48,16 @@ export default {
     membersLabel: "Leden met toegang:",
     noMembers: "Nog geen leden. Nodig iemand uit hierboven.",
     remove: "Verwijderen",
+  },
+  toast: {
+    todoAdded: "Taak toegevoegd",
+    todoDeleted: "Taak verwijderd",
+    todoCompleted: "Taak voltooid",
+    todoReopened: "Taak heropend",
+    todoFlagged: "Gemarkeerd als belangrijk",
+    todoUnflagged: "Markering verwijderd",
+    listCreated: "Lijst aangemaakt",
+    listDeleted: "Lijst verwijderd",
+    inviteSent: "Uitnodiging verzonden",
   },
 };

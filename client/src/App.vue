@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
 import { fetchLists, createList, removeList, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
@@ -8,6 +8,22 @@ import { fetchNotifications, markAllNotificationsRead } from "./services/notific
 
 const appVersion = __APP_VERSION__;
 const { t, locale } = useI18n();
+
+// Update these once you have hosted legal pages
+const PRIVACY_POLICY_URL = "/privacy.html";
+const TERMS_URL = "/terms.html";
+
+const toastRef = ref(null);
+const toastMessage = ref("");
+
+function showToast(msg) {
+  toastMessage.value = msg;
+  nextTick(() => {
+    if (toastRef.value) {
+      toastRef.value.open = true;
+    }
+  });
+}
 
 const todos = ref([]);
 const inputValue = ref("");
@@ -67,6 +83,7 @@ const activeListName = computed(() => {
   if (activeListId.value === null) return t("todo.allTasks");
   return lists.value.find((l) => l.id === activeListId.value)?.name ?? t("todo.allTasks");
 });
+const activeList = computed(() => lists.value.find((l) => l.id === activeListId.value) ?? null);
 const shareList = computed(() => lists.value.find((l) => l.id === shareListId.value) ?? null);
 
 async function loadLists() {
@@ -123,6 +140,11 @@ async function selectList(listId) {
   await loadTodos();
 }
 
+function onListSelectChange(event) {
+  const value = event.detail?.selectedOption?.value || null;
+  selectList(value || null);
+}
+
 async function addList() {
   const name = newListName.value.trim();
   if (!name || addingList.value) return;
@@ -134,6 +156,7 @@ async function addList() {
     newListName.value = "";
     showNewListInput.value = false;
     await selectList(created.id);
+    showToast(t('toast.listCreated'));
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -149,6 +172,7 @@ async function deleteList(listId) {
     if (activeListId.value === listId) {
       await selectList(null);
     }
+    showToast(t('toast.listDeleted'));
   } catch (err) {
     error.value = err.message;
   }
@@ -187,6 +211,7 @@ async function sendInvite() {
     const member = await inviteToList(shareListId.value, email);
     shareMembers.value = [...shareMembers.value, member];
     inviteEmail.value = "";
+    showToast(t('toast.inviteSent'));
   } catch (err) {
     shareError.value = err.message;
   } finally {
@@ -216,6 +241,7 @@ async function addTodo() {
     const created = await createTodo(text, activeListId.value);
     todos.value = [created, ...todos.value];
     inputValue.value = "";
+    showToast(t('toast.todoAdded'));
   } catch (err) {
     error.value = err.message;
   } finally {
@@ -229,6 +255,7 @@ async function toggleImportant(todo, event) {
   todo.important = !todo.important;
   try {
     await patchTodo(todo.id, { important: todo.important });
+    showToast(todo.important ? t('toast.todoFlagged') : t('toast.todoUnflagged'));
   } catch (err) {
     todo.important = original;
     error.value = err.message;
@@ -241,6 +268,7 @@ async function toggleTodo(todo) {
 
   try {
     await patchTodo(todo.id, { completed: todo.completed });
+    showToast(todo.completed ? t('toast.todoCompleted') : t('toast.todoReopened'));
   } catch (err) {
     todo.completed = originalState;
     error.value = err.message;
@@ -283,6 +311,7 @@ async function deleteItem(todoId) {
 
   try {
     await removeTodo(todoId);
+    showToast(t('toast.todoDeleted'));
   } catch (err) {
     todos.value = previous;
     error.value = err.message;
@@ -464,8 +493,18 @@ onUnmounted(() => {
         <div class="profile-avatar-large">{{ userEmail ? userEmail[0].toUpperCase() : '?' }}</div>
         <div class="profile-info">
           <span class="profile-email">{{ userEmail }}</span>
+          <span class="profile-version">v{{ appVersion }}</span>
         </div>
       </div>
+      <div class="profile-menu-divider"></div>
+      <a :href="PRIVACY_POLICY_URL" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+        <ui5-icon name="shield" class="profile-menu-item-icon" />
+        {{ $t('profile.privacyPolicy') }}
+      </a>
+      <a :href="TERMS_URL" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
+        <ui5-icon name="document" class="profile-menu-item-icon" />
+        {{ $t('profile.terms') }}
+      </a>
       <div class="profile-menu-divider"></div>
       <div class="profile-menu-item profile-menu-language">
         <ui5-icon name="globe" class="profile-menu-language-icon" />
@@ -587,56 +626,48 @@ onUnmounted(() => {
             <ui5-title level="H3">{{ activeListName }}</ui5-title>
             <p class="subtitle">{{ $t('todo.completed', { done: completedCount, total: totalCount }) }}</p>
           </div>
+          <div class="todo-header-controls">
+            <ui5-select class="list-select-compact" @change="onListSelectChange">
+              <ui5-option value="" :selected="activeListId === null">{{ $t('todo.all') }}</ui5-option>
+              <ui5-option
+                v-for="list in lists"
+                :key="list.id"
+                :value="list.id"
+                :selected="activeListId === list.id"
+              >{{ list.name }}{{ !list.isOwner ? ' 👥' : '' }}</ui5-option>
+            </ui5-select>
+            <ui5-button
+              v-if="activeListId && activeList?.isOwner !== false"
+              design="Transparent"
+              icon="collaborate"
+              :title="$t('todo.shareList')"
+              @click="openSharePanel(activeListId)"
+            />
+            <ui5-button
+              v-if="activeListId && activeList?.isOwner !== false"
+              design="Transparent"
+              icon="delete"
+              :title="$t('todo.deleteList')"
+              @click="deleteList(activeListId)"
+            />
+            <ui5-button design="Transparent" icon="add" :title="$t('todo.newList')" @click="showNewListInput = true" />
+          </div>
         </header>
 
-        <!-- List tabs -->
-        <div class="list-tabs">
-          <button
-            class="list-tab"
-            :class="{ active: activeListId === null }"
-            @click="selectList(null)"
-          >
-            {{ $t('todo.all') }}
-          </button>
-          <div v-for="list in lists" :key="list.id" class="list-tab-wrap">
-            <button
-              class="list-tab"
-              :class="{ active: activeListId === list.id }"
-              @click="selectList(list.id)"
-            >
-              {{ list.name }}
-              <span v-if="!list.isOwner" class="shared-badge" :title="$t('todo.sharedWithYou')">👥</span>
-            </button>
-            <button
-              v-if="list.isOwner !== false"
-              class="list-tab-action"
-              :title="$t('todo.shareList')"
-              @click.stop="openSharePanel(list.id)"
-            >
-              👥
-            </button>
-            <button
-              v-if="list.isOwner !== false"
-              class="list-tab-delete"
-              :title="$t('todo.deleteList')"
-              @click.stop="deleteList(list.id)"
-            >
-              ×
-            </button>
-          </div>
-          <div v-if="showNewListInput" class="new-list-form">
-            <ui5-input
-              :value="newListName"
-              :placeholder="$t('todo.listNamePlaceholder')"
-              maxlength="100"
-              @input="updateNewListName"
-              @keydown.enter="addList"
-              @keydown.escape="showNewListInput = false"
-            />
+        <!-- New list inline form -->
+        <div v-if="showNewListInput" class="new-list-form">
+          <ui5-input
+            :value="newListName"
+            :placeholder="$t('todo.listNamePlaceholder')"
+            maxlength="100"
+            @input="updateNewListName"
+            @keydown.enter="addList"
+            @keydown.escape="showNewListInput = false"
+          />
+          <div class="new-list-form-btns">
             <ui5-button design="Emphasized" :disabled="addingList" @click="addList">{{ $t('todo.add') }}</ui5-button>
             <ui5-button design="Transparent" @click="showNewListInput = false">{{ $t('todo.cancel') }}</ui5-button>
           </div>
-          <button v-else class="list-tab list-tab-add" @click="showNewListInput = true">{{ $t('todo.newList') }}</button>
         </div>
 
         <!-- Share panel -->
@@ -701,10 +732,16 @@ onUnmounted(() => {
               @drop.prevent="onDrop(index)"
               @dragend="onDragEnd"
             >
-              <ui5-icon name="vertical-grip" class="todo-drag-handle" />
+              <ui5-icon name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" />
               <label class="todo-label">
-                <ui5-checkbox :checked="todo.completed" @change="toggleTodo(todo)"></ui5-checkbox>
+                <ui5-checkbox
+                  :checked="todo.completed"
+                  :accessible-name="todo.completed ? $t('todo.markIncomplete') : $t('todo.markComplete')"
+                  :title="todo.completed ? $t('todo.markIncomplete') : $t('todo.markComplete')"
+                  @change="toggleTodo(todo)"
+                ></ui5-checkbox>
                 <span :class="{ done: todo.completed }">{{ todo.text }}</span>
+                <span v-if="activeListId === null && todo.listId" class="todo-list-badge">{{ lists.find(l => l.id === todo.listId)?.name }}</span>
               </label>
               <ui5-icon v-if="dragIndex === index" name="menu2" class="todo-dragging-icon" />
               <template v-else>
@@ -713,14 +750,16 @@ onUnmounted(() => {
                   :class="{ 'todo-important-btn--active': todo.important }"
                   design="Transparent"
                   icon="flag"
+                  :title="todo.important ? $t('todo.removeImportant') : $t('todo.markImportant')"
                   @click.stop="toggleImportant(todo, $event)"
                 />
-                <ui5-button class="todo-delete-btn" design="Transparent" icon="delete" @click="deleteItem(todo.id)" />
+                <ui5-button class="todo-delete-btn" design="Transparent" icon="delete" :title="$t('todo.deleteTodo')" @click="deleteItem(todo.id)" />
               </template>
             </div>
           </ui5-li-custom>
         </ui5-list>
       </article>
     </section>
+      <ui5-toast ref="toastRef" placement="BottomCenter" duration="2500">{{ toastMessage }}</ui5-toast>
   </main>
 </template>

@@ -14,6 +14,8 @@ export default {
   },
   profile: {
     signOut: "Abmelden",
+    privacyPolicy: "Datenschutzerklärung",
+    terms: "Nutzungsbedingungen",
   },
   notifications: {
     title: "Benachrichtigungen",
@@ -32,6 +34,12 @@ export default {
     newList: "+ Neue Liste",
     loading: "Aufgaben werden geladen...",
     placeholder: "Was müssen Sie erledigen?",
+    dragToReorder: "Zum Neuordnen ziehen",
+    markImportant: "Als wichtig markieren",
+    removeImportant: "Markierung entfernen",
+    deleteTodo: "Aufgabe löschen",
+    markComplete: "Als erledigt markieren",
+    markIncomplete: "Als unerledigt markieren",
   },
   share: {
     title: '"{name}" teilen',
@@ -40,5 +48,16 @@ export default {
     membersLabel: "Mitglieder mit Zugriff:",
     noMembers: "Noch keine Mitglieder. Laden Sie jemanden ein.",
     remove: "Entfernen",
+  },
+  toast: {
+    todoAdded: "Aufgabe hinzugefügt",
+    todoDeleted: "Aufgabe gelöscht",
+    todoCompleted: "Aufgabe erledigt",
+    todoReopened: "Aufgabe wieder geöffnet",
+    todoFlagged: "Als wichtig markiert",
+    todoUnflagged: "Markierung entfernt",
+    listCreated: "Liste erstellt",
+    listDeleted: "Liste gelöscht",
+    inviteSent: "Einladung gesendet",
   },
 };

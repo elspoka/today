@@ -14,6 +14,8 @@ export default {
   },
   profile: {
     signOut: "Αποσύνδεση",
+    privacyPolicy: "Πολιτική Απορρήτου",
+    terms: "Όροι Χρήσης",
   },
   notifications: {
     title: "Ειδοποιήσεις",
@@ -32,6 +34,12 @@ export default {
     newList: "+ Νέα λίστα",
     loading: "Φόρτωση εργασιών...",
     placeholder: "Τι χρειάζεστε να κάνετε;",
+    dragToReorder: "Σύρετε για αναδιάταξη",
+    markImportant: "Σημείωσε ως σημαντικό",
+    removeImportant: "Αφαίρεση σημαίας",
+    deleteTodo: "Διαγραφή εργασίας",
+    markComplete: "Σημείωσε ως ολοκληρωμένο",
+    markIncomplete: "Σημείωσε ως μη ολοκληρωμένο",
   },
   share: {
     title: 'Κοινοποίηση "{name}"',
@@ -40,5 +48,16 @@ export default {
     membersLabel: "Μέλη με πρόσβαση:",
     noMembers: "Δεν υπάρχουν μέλη ακόμα. Προσκαλέστε κάποιον παραπάνω.",
     remove: "Αφαίρεση",
+  },
+  toast: {
+    todoAdded: "Εργασία προστέθηκε",
+    todoDeleted: "Εργασία διαγράφηκε",
+    todoCompleted: "Εργασία ολοκληρώθηκε",
+    todoReopened: "Εργασία επανανοίχθηκε",
+    todoFlagged: "Σημειώθηκε ως σημαντική",
+    todoUnflagged: "Σημαία αφαιρέθηκε",
+    listCreated: "Λίστα δημιουργήθηκε",
+    listDeleted: "Λίστα διαγράφηκε",
+    inviteSent: "Πρόσκληση εστάλη",
   },
 };

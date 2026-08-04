@@ -14,6 +14,8 @@ export default {
   },
   profile: {
     signOut: "Cerrar sesión",
+    privacyPolicy: "Política de privacidad",
+    terms: "Términos de servicio",
   },
   notifications: {
     title: "Notificaciones",
@@ -32,6 +34,12 @@ export default {
     newList: "+ Nueva lista",
     loading: "Cargando tareas...",
     placeholder: "¿Qué necesitas hacer?",
+    dragToReorder: "Arrastra para reordenar",
+    markImportant: "Marcar como importante",
+    removeImportant: "Quitar marca",
+    deleteTodo: "Eliminar tarea",
+    markComplete: "Marcar como completado",
+    markIncomplete: "Marcar como pendiente",
   },
   share: {
     title: 'Compartir "{name}"',
@@ -40,5 +48,16 @@ export default {
     membersLabel: "Miembros con acceso:",
     noMembers: "Aún no hay miembros. Invita a alguien arriba.",
     remove: "Eliminar",
+  },
+  toast: {
+    todoAdded: "Tarea añadida",
+    todoDeleted: "Tarea eliminada",
+    todoCompleted: "Tarea completada",
+    todoReopened: "Tarea reabierta",
+    todoFlagged: "Marcada como importante",
+    todoUnflagged: "Marca eliminada",
+    listCreated: "Lista creada",
+    listDeleted: "Lista eliminada",
+    inviteSent: "Invitación enviada",
   },
 };

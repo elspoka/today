@@ -72,6 +72,8 @@ export class SupabaseListRepository extends ListRepository {
     return {
       id: data.id,
       name: data.name,
+      ownerId: userId,
+      isOwner: true,
       createdAt: data.created_at
     };
   }
