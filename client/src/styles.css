@@ -378,21 +378,13 @@ body {
   gap: 0.5rem;
 }
 
-/* ── Profile menu ─────────────────────────────────────── */
-.profile-menu {
-  position: fixed;
-  top: 3rem;
-  right: 1rem;
-  z-index: 101;
-  width: min(280px, calc(100vw - 2rem));
-  background: var(--sapGroup_ContentBackground);
-  border: 1px solid var(--sapList_BorderColor);
-  border-radius: 0.5rem;
-  box-shadow: var(--sapContent_Shadow2, 0 4px 16px rgba(0,0,0,0.18));
+/* ── Profile popover ─────────────────────────────────── */
+.profile-popover-content {
+  width: min(268px, calc(100vw - 2rem));
   overflow: hidden;
 }
 
-.profile-menu-header {
+.profile-popover-header {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -432,13 +424,13 @@ body {
   color: var(--sapContent_LabelColor);
 }
 
-.profile-menu-divider {
+.profile-popover-divider {
   height: 1px;
   background: var(--sapList_BorderColor);
   margin: 0;
 }
 
-.profile-menu-item {
+.profile-popover-item {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -455,12 +447,12 @@ body {
   box-sizing: border-box;
 }
 
-.profile-menu-item-icon {
+.profile-popover-item-icon {
   flex-shrink: 0;
   color: var(--sapContent_LabelColor);
 }
 
-.profile-menu-item:hover {
+.profile-popover-item:hover {
   background: var(--sapList_HoverBackground);
 }
 
@@ -468,141 +460,44 @@ body {
   color: var(--sapNegativeColor);
 }
 
-.profile-menu-language {
-  gap: 0.6rem;
+.profile-popover-language {
   cursor: default;
 }
 
-.profile-menu-language:hover {
+.profile-popover-language:hover {
   background: none;
 }
 
-.profile-menu-language-icon {
-  flex-shrink: 0;
-  color: var(--sapContent_LabelColor);
-}
-
-.profile-menu-language ui5-select {
+.profile-popover-language ui5-select {
   flex: 1;
 }
 
-/* ── Notifications panel ──────────────────────────────── */
-.notifications-panel {
-  position: fixed;
-  top: 3rem;
-  right: 1rem;
-  z-index: 100;
-  width: min(360px, calc(100vw - 2rem));
-  background: var(--sapGroup_ContentBackground);
-  border: 1px solid var(--sapList_BorderColor);
-  border-radius: 0.5rem;
-  box-shadow: var(--sapContent_Shadow2, 0 4px 16px rgba(0,0,0,0.18));
-  overflow: hidden;
+.profile-popover-switch-row {
+  cursor: default;
 }
 
-.notifications-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--sapList_BorderColor);
-  background: var(--sapList_HeaderBackground);
-}
-
-.notifications-close {
+.profile-popover-switch-row:hover {
   background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: var(--sapContent_LabelColor);
-  line-height: 1;
-  padding: 0 0.2rem;
 }
 
-.notifications-close:hover {
-  color: var(--sapNegativeColor);
-}
-
-.notifications-empty {
-  padding: 1.25rem 1rem;
+.profile-popover-switch-label {
+  flex: 1;
   font-size: 0.875rem;
-  color: var(--sapContent_LabelColor);
-  text-align: center;
+  color: var(--sapTextColor);
 }
 
-.notifications-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 320px;
+/* ── Notifications popover ───────────────────────────── */
+.notif-popover-content {
+  width: min(340px, calc(100vw - 2rem));
+  max-height: 400px;
   overflow-y: auto;
 }
 
-.notification-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--sapList_BorderColor);
-  transition: background 0.1s;
-}
-
-.notification-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  flex: 1;
-  min-width: 0;
-}
-
-.notification-delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--sapContent_LabelColor);
-  font-size: 1.1rem;
-  padding: 0 0.25rem;
-  line-height: 1;
-  flex-shrink: 0;
-  opacity: 0.6;
-}
-
-.notification-delete-btn:hover {
-  opacity: 1;
-  color: var(--sapNegativeColor);
-}
-
-.profile-darkmode {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.6rem 1rem;
+.notif-popover-empty {
+  padding: 1.5rem 1rem;
   font-size: 0.875rem;
-  color: var(--sapTextColor);
-  text-align: left;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
-.notification-item.unread {
-  background: var(--sapList_SelectionBackgroundColor, rgba(0, 100, 220, 0.06));
-  border-left: 3px solid var(--sapButton_Emphasized_Background);
-}
-
-.notification-msg {
-  font-size: 0.9rem;
-  color: var(--sapTextColor);
-}
-
-.notification-time {
-  font-size: 0.75rem;
   color: var(--sapContent_LabelColor);
+  text-align: center;
 }
 
 @media (max-width: 540px) {

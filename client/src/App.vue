@@ -47,8 +47,8 @@ function applyTheme() {
   setTheme(darkMode.value ? "sap_horizon_dark" : "sap_horizon");
 }
 
-function toggleDarkMode() {
-  darkMode.value = !darkMode.value;
+function toggleDarkMode(event) {
+  darkMode.value = event?.detail?.checked ?? !darkMode.value;
   localStorage.setItem("darkMode", String(darkMode.value));
   applyTheme();
 }
@@ -117,8 +117,8 @@ const shareError = ref("");
 
 // Notifications
 const notifications = ref([]);
-const showNotificationsPanel = ref(false);
-const showProfileMenu = ref(false);
+const profilePopoverRef = ref(null);
+const notifPopoverRef = ref(null);
 
 const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
 
@@ -152,18 +152,26 @@ async function loadNotifications() {
   }
 }
 
-async function toggleNotificationsPanel() {
-  showProfileMenu.value = false;
-  showNotificationsPanel.value = !showNotificationsPanel.value;
-  if (showNotificationsPanel.value && unreadCount.value > 0) {
-    await markAllNotificationsRead();
-    notifications.value = notifications.value.map((n) => ({ ...n, read: true }));
+async function onNotificationsClick(event) {
+  profilePopoverRef.value?.close();
+  if (notifPopoverRef.value?.open) {
+    notifPopoverRef.value.close();
+  } else {
+    notifPopoverRef.value?.showAt(event.detail.targetRef);
+    if (unreadCount.value > 0) {
+      await markAllNotificationsRead();
+      notifications.value = notifications.value.map((n) => ({ ...n, read: true }));
+    }
   }
 }
 
-function toggleProfileMenu() {
-  showNotificationsPanel.value = false;
-  showProfileMenu.value = !showProfileMenu.value;
+function onProfileClick(event) {
+  notifPopoverRef.value?.close();
+  if (profilePopoverRef.value?.open) {
+    profilePopoverRef.value.close();
+  } else {
+    profilePopoverRef.value?.showAt(event.detail.targetRef);
+  }
 }
 
 async function loadTodos() {
@@ -522,7 +530,7 @@ async function signOut() {
   activeListId.value = null;
   shareListId.value = null;
   shareMembers.value = [];
-  showNotificationsPanel.value = false;
+
   inputValue.value = "";
   error.value = "";
 }
@@ -613,77 +621,85 @@ onUnmounted(() => {
       :secondary-title="'v' + appVersion"
       show-notifications
       :notifications-count="unreadCount > 0 ? String(unreadCount) : ''"
-      @notifications-click="toggleNotificationsPanel"
-      @profile-click="toggleProfileMenu"
+      @notifications-click="onNotificationsClick"
+      @profile-click="onProfileClick"
     >
       <ui5-avatar slot="profile" size="XS" shape="Circle" color-scheme="Accent5">
         {{ userEmail ? userEmail[0].toUpperCase() : '?' }}
       </ui5-avatar>
     </ui5-shellbar>
 
-    <!-- Profile menu -->
-    <div v-if="showProfileMenu && isAuthenticated" class="profile-menu">
-      <div class="profile-menu-header">
-        <div class="profile-avatar-large">{{ userEmail ? userEmail[0].toUpperCase() : '?' }}</div>
-        <div class="profile-info">
-          <span class="profile-email">{{ userEmail }}</span>
-          <span class="profile-version">v{{ appVersion }}</span>
-        </div>
-      </div>
-      <div class="profile-menu-divider"></div>
-      <a :href="PRIVACY_POLICY_URL" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
-        <ui5-icon name="shield" class="profile-menu-item-icon" />
-        {{ $t('profile.privacyPolicy') }}
-      </a>
-      <a :href="TERMS_URL" target="_blank" rel="noopener noreferrer" class="profile-menu-item">
-        <ui5-icon name="document" class="profile-menu-item-icon" />
-        {{ $t('profile.terms') }}
-      </a>
-      <div class="profile-menu-divider"></div>
-      <div class="profile-menu-item profile-menu-language">
-        <ui5-icon name="globe" class="profile-menu-language-icon" />
-        <ui5-select @change="updateLanguage">
-          <ui5-option
-            v-for="lang in languages"
-            :key="lang.key"
-            :value="lang.key"
-            :selected="lang.key === locale"
-          >{{ lang.label }}</ui5-option>
-        </ui5-select>
-      </div>
-      <div class="profile-menu-divider"></div>
-      <button class="profile-menu-item profile-darkmode" @click="toggleDarkMode">
-        <ui5-icon :name="darkMode ? 'light-mode' : 'dark-mode'" class="profile-menu-item-icon" />
-        {{ darkMode ? $t('profile.lightMode') : $t('profile.darkMode') }}
-      </button>
-      <div class="profile-menu-divider"></div>
-      <button class="profile-menu-item profile-signout" @click="signOut">{{ $t('profile.signOut') }}</button>
-    </div>
-
-    <!-- Notifications panel -->
-    <div v-if="showNotificationsPanel && isAuthenticated" class="notifications-panel">
-      <div class="notifications-header">
-        <strong>{{ $t('notifications.title') }}</strong>
-        <button class="notifications-close" @click="showNotificationsPanel = false">×</button>
-      </div>
-      <div v-if="notifications.length === 0" class="notifications-empty">
-        {{ $t('notifications.empty') }}
-      </div>
-      <ul v-else class="notifications-list">
-        <li
-          v-for="n in notifications"
-          :key="n.id"
-          class="notification-item"
-          :class="{ unread: !n.read }"
-        >
-          <div class="notification-body">
-            <span class="notification-msg">{{ n.message }}</span>
-            <span class="notification-time">{{ new Date(n.createdAt).toLocaleString() }}</span>
+    <!-- Profile popover -->
+    <ui5-popover
+      v-if="isAuthenticated"
+      ref="profilePopoverRef"
+      placement="Bottom"
+      horizontal-align="End"
+      hide-arrow
+    >
+      <div class="profile-popover-content">
+        <div class="profile-popover-header">
+          <div class="profile-avatar-large">{{ userEmail ? userEmail[0].toUpperCase() : '?' }}</div>
+          <div class="profile-info">
+            <span class="profile-email">{{ userEmail }}</span>
+            <span class="profile-version">v{{ appVersion }}</span>
           </div>
-          <button class="notification-delete-btn" :title="$t('notifications.delete')" @click="removeNotification(n.id)">×</button>
-        </li>
-      </ul>
-    </div>
+        </div>
+        <div class="profile-popover-divider"></div>
+        <div class="profile-popover-item profile-popover-language">
+          <ui5-icon name="globe" class="profile-popover-item-icon" />
+          <ui5-select @change="updateLanguage">
+            <ui5-option v-for="lang in languages" :key="lang.key" :value="lang.key" :selected="lang.key === locale">{{ lang.label }}</ui5-option>
+          </ui5-select>
+        </div>
+        <div class="profile-popover-divider"></div>
+        <div class="profile-popover-item profile-popover-switch-row">
+          <ui5-icon :name="darkMode ? 'light-mode' : 'dark-mode'" class="profile-popover-item-icon" />
+          <span class="profile-popover-switch-label">{{ darkMode ? $t('profile.lightMode') : $t('profile.darkMode') }}</span>
+          <ui5-switch :checked="darkMode" @change="toggleDarkMode" />
+        </div>
+        <div class="profile-popover-divider"></div>
+        <a :href="PRIVACY_POLICY_URL" target="_blank" rel="noopener noreferrer" class="profile-popover-item">
+          <ui5-icon name="shield" class="profile-popover-item-icon" />
+          {{ $t('profile.privacyPolicy') }}
+        </a>
+        <a :href="TERMS_URL" target="_blank" rel="noopener noreferrer" class="profile-popover-item">
+          <ui5-icon name="document" class="profile-popover-item-icon" />
+          {{ $t('profile.terms') }}
+        </a>
+        <div class="profile-popover-divider"></div>
+        <button class="profile-popover-item profile-signout" @click="signOut">
+          <ui5-icon name="log" class="profile-popover-item-icon" />
+          {{ $t('profile.signOut') }}
+        </button>
+      </div>
+    </ui5-popover>
+
+    <!-- Notifications popover -->
+    <ui5-popover
+      v-if="isAuthenticated"
+      ref="notifPopoverRef"
+      placement="Bottom"
+      horizontal-align="End"
+      hide-arrow
+    >
+      <div class="notif-popover-content">
+        <div v-if="notifications.length === 0" class="notif-popover-empty">
+          {{ $t('notifications.empty') }}
+        </div>
+        <ui5-notification-list v-else>
+          <ui5-notification-list-item
+            v-for="n in notifications"
+            :key="n.id"
+            :title-text="n.message"
+            :read="n.read"
+            show-close
+            wrapping-type="Normal"
+            @close="removeNotification(n.id)"
+          >{{ new Date(n.createdAt).toLocaleString() }}</ui5-notification-list-item>
+        </ui5-notification-list>
+      </div>
+    </ui5-popover>
 
     <section class="content-area" :class="{ 'content-area--centered': !isAuthenticated }">
       <article v-if="!isAuthenticated" class="fiori-card auth-card">
