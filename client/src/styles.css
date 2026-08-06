@@ -114,7 +114,44 @@ body {
 }
 
 .todo-create {
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+.todo-date-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.todo-date-box {
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--sapField_BorderColor, #89919a);
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  color: var(--sapContent_IconColor);
+  background: var(--sapField_Background, #fff);
+  cursor: pointer;
+}
+
+.todo-date-box--active {
+  border-color: var(--sapSelectedColor, #0a6ed1);
+  color: var(--sapSelectedColor, #0a6ed1);
+}
+
+.todo-date-icon {
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.todo-date-native {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .todo-header {
@@ -202,6 +239,48 @@ body {
 
 .todo-label span {
   word-break: break-word;
+}
+
+.todo-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.todo-due-date {
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.todo-due-date--overdue {
+  color: #b73922;
+  font-weight: 600;
+}
+
+.todo-due-date--today {
+  color: #2f6ed5;
+  font-weight: 600;
+}
+
+.todo-overdue-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #b73922;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.todo-today-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: #2f6ed5;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .todo-swipe-wrapper {

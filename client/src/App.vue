@@ -2,7 +2,9 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js";
+import "@ui5/webcomponents-icons/dist/calendar.js";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
+import { formatDueDate, getDueDateState } from "./utils/dueDate.js";
 import { fetchLists, createList, removeList, leaveList as leaveListApi, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
 import { authService, supabaseConfigError } from "./services/authService.js";
 import { supabase } from "./providers/supabase.js";
@@ -29,6 +31,7 @@ function showToast(msg) {
 
 const todos = ref([]);
 const inputValue = ref("");
+const dueDateValue = ref("");
 const error = ref("");
 const loading = ref(false);
 const submitting = ref(false);
@@ -307,9 +310,10 @@ async function addTodo() {
   error.value = "";
 
   try {
-    const created = await createTodo(text, activeListId.value);
+    const created = await createTodo(text, activeListId.value, dueDateValue.value || null);
     todos.value = [created, ...todos.value];
     inputValue.value = "";
+    dueDateValue.value = "";
     showToast(t('toast.todoAdded'));
   } catch (err) {
     error.value = err.message;
@@ -436,6 +440,7 @@ function mapDbTodo(row) {
     completed: row.completed,
     important: row.important ?? false,
     listId: row.list_id ?? null,
+    dueDate: row.due_date ?? row.dueDate ?? null,
     createdAt: row.created_at,
   };
 }
@@ -563,6 +568,10 @@ function updatePassword(event) {
 
 function updateTodoInput(event) {
   inputValue.value = event.target.value;
+}
+
+function updateDueDateInput(event) {
+  dueDateValue.value = event.target.value;
 }
 
 function updateNewListName(event) {
@@ -889,12 +898,29 @@ onUnmounted(() => {
           <ui5-input
             :value="inputValue"
             maxlength="200"
-              :placeholder="$t('todo.placeholder')"
+            :placeholder="$t('todo.placeholder')"
             :disabled="submitting"
             @input="updateTodoInput"
             @keydown.enter="addTodo"
             @keydown.escape="inputValue = ''"
           />
+          <div class="todo-date-control">
+            <label
+              class="todo-date-box"
+              :class="{ 'todo-date-box--active': Boolean(dueDateValue) }"
+              :title="$t('todo.pickDate')"
+            >
+              <ui5-icon name="calendar" class="todo-date-icon" />
+              <input
+                class="todo-date-native"
+                :value="dueDateValue"
+                type="date"
+                :disabled="submitting"
+                :aria-label="$t('todo.pickDate')"
+                @input="updateDueDateInput"
+              />
+            </label>
+          </div>
           <ui5-button icon="add" design="Emphasized" type="Submit" :disabled="submitting">
             {{ $t('todo.add') }}
           </ui5-button>
@@ -938,8 +964,22 @@ onUnmounted(() => {
                   :title="todo.completed ? $t('todo.markIncomplete') : $t('todo.markComplete')"
                   @change="toggleTodo(todo)"
                 ></ui5-checkbox>
-                <span :class="{ done: todo.completed }">{{ todo.text }}</span>
+                <div class="todo-main-content">
+                  <span :class="{ done: todo.completed }">{{ todo.text }}</span>
+                  <span
+                    v-if="todo.dueDate"
+                    class="todo-due-date"
+                    :class="{
+                      'todo-due-date--overdue': getDueDateState(todo.dueDate).isOverdue,
+                      'todo-due-date--today': getDueDateState(todo.dueDate).isToday
+                    }"
+                  >
+                    {{ $t('todo.dueLabel', { date: formatDueDate(todo.dueDate) }) }}
+                  </span>
+                </div>
                 <span v-if="activeListId === null && todo.listId" class="todo-list-badge">{{ lists.find(l => l.id === todo.listId)?.name }}</span>
+                <span v-if="getDueDateState(todo.dueDate).isOverdue" class="todo-overdue-badge">{{ $t('todo.overdue') }}</span>
+                <span v-else-if="getDueDateState(todo.dueDate).isToday" class="todo-today-badge">{{ $t('todo.dueToday') }}</span>
               </label>
               <ui5-icon v-if="dragIndex === index" name="menu2" class="todo-dragging-icon" />
               <template v-else>

@@ -5,10 +5,10 @@ export function fetchTodos(listId = null) {
   return request(`/todos${qs}`);
 }
 
-export function createTodo(text, listId = null) {
+export function createTodo(text, listId = null, dueDate = null) {
   return request("/todos", {
     method: "POST",
-    body: JSON.stringify({ text, listId })
+    body: JSON.stringify({ text, listId, dueDate })
   });
 }
 

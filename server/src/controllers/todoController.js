@@ -2,16 +2,18 @@ import { z } from "zod";
 
 const todoSchema = z.object({
   text: z.string().trim().min(1).max(200),
-  listId: z.string().uuid().optional().nullable()
+  listId: z.string().uuid().optional().nullable(),
+  dueDate: z.string().trim().nullable().optional()
 });
 
 const todoUpdateSchema = z
   .object({
     text: z.string().trim().min(1).max(200).optional(),
     completed: z.boolean().optional(),
-    important: z.boolean().optional()
+    important: z.boolean().optional(),
+    dueDate: z.string().trim().nullable().optional()
   })
-  .refine((payload) => payload.text !== undefined || payload.completed !== undefined || payload.important !== undefined, {
+  .refine((payload) => payload.text !== undefined || payload.completed !== undefined || payload.important !== undefined || payload.dueDate !== undefined, {
     message: "At least one property is required"
   });
 
@@ -29,7 +31,7 @@ export function createTodoController(todoService) {
         return res.status(400).json({ error: "Invalid payload" });
       }
 
-      const todo = await todoService.createTodo(req.user.id, parsed.data.text, parsed.data.listId ?? null);
+      const todo = await todoService.createTodo(req.user.id, parsed.data.text, parsed.data.listId ?? null, parsed.data.dueDate ?? null);
       return res.status(201).json({ data: todo });
     },
 

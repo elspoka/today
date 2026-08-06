@@ -26,7 +26,7 @@ export class SupabaseTodoRepository extends TodoRepository {
 
     let query = this.client
       .from(this.table)
-      .select("id, text, completed, important, list_id, created_at")
+      .select("id, text, completed, important, list_id, due_date, created_at")
       .or(userFilter)
       .order("created_at", { ascending: false });
 
@@ -34,7 +34,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       query = query.eq("list_id", listId);
     }
 
-    const { data, error } = await query;
+    let { data, error } = await query;
 
     if (error) {
       if (
@@ -57,6 +57,7 @@ export class SupabaseTodoRepository extends TodoRepository {
           text: item.text,
           completed: item.completed,
           listId: null,
+          dueDate: null,
           createdAt: item.created_at
         }));
       }
@@ -70,21 +71,38 @@ export class SupabaseTodoRepository extends TodoRepository {
       completed: item.completed,
       important: item.important ?? false,
       listId: item.list_id,
+      dueDate: item.due_date ?? null,
       createdAt: item.created_at
     }));
   }
 
-  async create(userId, text, listId = null) {
+  async create(userId, text, listId = null, dueDate = null) {
     const insertPayload = { user_id: userId, text, completed: false };
     if (listId !== null) {
       insertPayload.list_id = listId;
     }
+    if (dueDate !== null && dueDate !== undefined) {
+      insertPayload.due_date = dueDate;
+    }
 
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from(this.table)
       .insert(insertPayload)
-      .select("id, text, completed, list_id, created_at")
+      .select("id, text, completed, list_id, due_date, created_at")
       .single();
+
+    if (error && error.message && error.message.includes("does not exist")) {
+      const fallbackPayload = { ...insertPayload };
+      delete fallbackPayload.due_date;
+      const fallbackResult = await this.client
+        .from(this.table)
+        .insert(fallbackPayload)
+        .select("id, text, completed, list_id, created_at")
+        .single();
+
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
 
     if (error) {
       throw mapSupabaseError(error);
@@ -95,6 +113,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       text: data.text,
       completed: data.completed,
       listId: data.list_id,
+      dueDate: data.due_date ?? null,
       createdAt: data.created_at
     };
   }
@@ -114,17 +133,36 @@ export class SupabaseTodoRepository extends TodoRepository {
       updatePayload.important = payload.important;
     }
 
+    if (payload.dueDate !== undefined) {
+      updatePayload.due_date = payload.dueDate;
+    }
+
     const userFilter = memberListIds.length > 0
       ? `user_id.eq.${userId},list_id.in.(${memberListIds.join(",")})`
       : `user_id.eq.${userId}`;
 
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from(this.table)
       .update(updatePayload)
       .eq("id", id)
       .or(userFilter)
-      .select("id, text, completed, important, list_id, created_at")
+      .select("id, text, completed, important, list_id, due_date, created_at")
       .maybeSingle();
+
+    if (error && error.message && error.message.includes("does not exist")) {
+      const fallbackPayload = { ...updatePayload };
+      delete fallbackPayload.due_date;
+      const fallbackResult = await this.client
+        .from(this.table)
+        .update(fallbackPayload)
+        .eq("id", id)
+        .or(userFilter)
+        .select("id, text, completed, important, list_id, created_at")
+        .maybeSingle();
+
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
 
     if (error) {
       // list_id or user_id column may not exist yet — fall back to id-only update
@@ -144,6 +182,7 @@ export class SupabaseTodoRepository extends TodoRepository {
           text: fallbackData.text,
           completed: fallbackData.completed,
           listId: null,
+          dueDate: fallbackData.due_date ?? null,
           createdAt: fallbackData.created_at
         };
       }
@@ -158,6 +197,7 @@ export class SupabaseTodoRepository extends TodoRepository {
       completed: data.completed,
       important: data.important ?? false,
       listId: data.list_id,
+      dueDate: data.due_date ?? null,
       createdAt: data.created_at
     };
   }

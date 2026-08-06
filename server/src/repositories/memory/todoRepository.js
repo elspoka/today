@@ -17,7 +17,7 @@ export class InMemoryTodoRepository extends TodoRepository {
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   }
 
-  async create(userId, text, listId = null) {
+  async create(userId, text, listId = null, dueDate = null) {
     const todo = {
       id: crypto.randomUUID(),
       userId,
@@ -25,6 +25,7 @@ export class InMemoryTodoRepository extends TodoRepository {
       completed: false,
       important: false,
       listId,
+      dueDate,
       createdAt: new Date().toISOString()
     };
 

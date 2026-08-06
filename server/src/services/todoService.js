@@ -5,8 +5,8 @@ export function createTodoService(todoRepository, listMembersRepository) {
       return todoRepository.getAll(userId, listId, memberListIds);
     },
 
-    async createTodo(userId, text, listId) {
-      return todoRepository.create(userId, text, listId);
+    async createTodo(userId, text, listId, dueDate = null) {
+      return todoRepository.create(userId, text, listId, dueDate);
     },
 
     async updateTodo(userId, id, payload) {
