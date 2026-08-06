@@ -22,7 +22,20 @@ export async function request(path, options = {}) {
   }
 
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  const contentType = response.headers.get("content-type") || "";
+  let body = null;
+
+  if (text) {
+    if (contentType.includes("application/json")) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned invalid JSON");
+      }
+    } else {
+      throw new Error("Server returned an unexpected response format");
+    }
+  }
 
   if (!response.ok) {
     throw new Error(body?.error || "Request failed");

@@ -118,6 +118,11 @@ body {
   align-items: center;
 }
 
+.todo-create ui5-input,
+.todo-create ui5-button {
+  height: 2.5rem;
+}
+
 .todo-date-control {
   display: flex;
   align-items: center;
@@ -126,8 +131,8 @@ body {
 
 .todo-date-box {
   position: relative;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 1px solid var(--sapField_BorderColor, #89919a);
   border-radius: 0.5rem;
   display: grid;
@@ -156,8 +161,8 @@ body {
 
 .todo-filter-box {
   position: relative;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   padding: 0;
   border: 1px solid var(--sapField_BorderColor, #89919a);
   border-radius: 0.5rem;
@@ -194,8 +199,8 @@ body {
 }
 
 .todo-sort-box {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   padding: 0;
   border: 1px solid var(--sapField_BorderColor, #89919a);
   border-radius: 0.5rem;
@@ -701,6 +706,11 @@ body {
     flex: none;
     width: 100%;
     padding-left: 0;
+  }
+
+  .todo-create {
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+    gap: 0.4rem;
   }
 
   /* always show drag handle on touch so users can reorder */

@@ -18,7 +18,7 @@
 - Sort/filter by due date option
 
 ### Search & filter
-- Text filter bar above the todo list
+- [x] Text filter bar above the todo list
 - Filter by: completed, important, overdue
 - Clear filter button
 

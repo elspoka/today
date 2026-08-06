@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js";
 import "@ui5/webcomponents-icons/dist/calendar.js";
@@ -8,6 +8,7 @@ import "@ui5/webcomponents-icons/dist/add-filter.js";
 import "@ui5/webcomponents-icons/dist/clear-filter.js";
 import "@ui5/webcomponents-icons/dist/sort.js";
 import "@ui5/webcomponents-icons/dist/sorting-ranking.js";
+import "@ui5/webcomponents-icons/dist/search.js";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
 import { formatDueDate, getDueDateState } from "./utils/dueDate.js";
 import { fetchLists, createList, removeList, leaveList as leaveListApi, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
@@ -37,6 +38,8 @@ function showToast(msg) {
 const todos = ref([]);
 const inputValue = ref("");
 const dueDateValue = ref("");
+const searchQuery = ref("");
+const globalSearchTodos = ref([]);
 const activeFilters = ref([]);
 const filterMatchMode = ref("all");
 const sortMode = ref("createdDesc");
@@ -378,6 +381,7 @@ const activeFilterLabel = computed(() => {
 const isFilterActive = computed(() => activeFilters.value.length > 0);
 const isSortActive = computed(() => sortMode.value !== "createdDesc");
 const isReorderEnabled = computed(() => activeFilters.value.length === 0 && !isSortActive.value);
+const isGlobalSearchActive = computed(() => searchQuery.value.trim().length > 0);
 
 const filterOptions = computed(() => [
   { mode: "important", label: t("todo.filterImportant") },
@@ -455,6 +459,67 @@ function updateFilterMatchMode(event) {
   filterMatchMode.value = value === "any" ? "any" : "all";
 }
 
+function getListName(listId) {
+  return lists.value.find((item) => item.id === listId)?.name ?? "";
+}
+
+function updateSearchInput(event) {
+  searchQuery.value = event.target.value;
+}
+
+function clearSearch() {
+  searchQuery.value = "";
+}
+
+async function refreshGlobalSearchTodos() {
+  if (!isGlobalSearchActive.value || !isAuthenticated.value) {
+    globalSearchTodos.value = [];
+    return;
+  }
+
+  // In "All" view todos are already loaded across lists, so avoid an extra network request.
+  if (activeListId.value === null) {
+    globalSearchTodos.value = [...todos.value];
+    return;
+  }
+
+  try {
+    const listIds = lists.value.map((list) => list.id).filter(Boolean);
+
+    if (listIds.length === 0) {
+      globalSearchTodos.value = [...todos.value];
+      return;
+    }
+
+    const settled = await Promise.allSettled(listIds.map((listId) => fetchTodos(listId)));
+    const mergedById = new Map();
+
+    // Keep the local visible list as fallback even if some requests fail.
+    for (const todo of todos.value) {
+      mergedById.set(todo.id, todo);
+    }
+
+    for (const result of settled) {
+      if (result.status !== "fulfilled") continue;
+      for (const todo of result.value) {
+        mergedById.set(todo.id, todo);
+      }
+    }
+
+    globalSearchTodos.value = Array.from(mergedById.values());
+  } catch (err) {
+    console.warn("Global search refresh failed:", err);
+    globalSearchTodos.value = [...todos.value];
+  }
+}
+
+watch(
+  [() => searchQuery.value, () => activeListId.value, () => isAuthenticated.value, () => todos.value.length],
+  () => {
+    refreshGlobalSearchTodos();
+  }
+);
+
 function isFilterSelected(mode) {
   return activeFilters.value.includes(mode);
 }
@@ -479,7 +544,20 @@ function matchesFilter(todo) {
   return activeFilters.value.every((mode) => predicate(mode));
 }
 
-const filteredTodos = computed(() => todos.value.filter((todo) => matchesFilter(todo)));
+const searchedTodos = computed(() => {
+  const query = searchQuery.value.trim().toLowerCase();
+  const source = isGlobalSearchActive.value ? globalSearchTodos.value : todos.value;
+
+  if (!query) return source;
+
+  return source.filter((todo) => {
+    const textMatch = todo.text.toLowerCase().includes(query);
+    const listNameMatch = getListName(todo.listId).toLowerCase().includes(query);
+    return textMatch || listNameMatch;
+  });
+});
+
+const filteredTodos = computed(() => searchedTodos.value.filter((todo) => matchesFilter(todo)));
 
 function getDueTimestamp(todo) {
   if (!todo?.dueDate) return null;
@@ -733,6 +811,7 @@ async function signOut() {
   unsubscribeFromRealtime();
   await authService.signOut();
   todos.value = [];
+  globalSearchTodos.value = [];
   lists.value = [];
   notifications.value = [];
   activeListId.value = null;
@@ -740,6 +819,7 @@ async function signOut() {
   shareMembers.value = [];
 
   inputValue.value = "";
+  searchQuery.value = "";
   error.value = "";
 }
 
@@ -833,9 +913,18 @@ onUnmounted(() => {
       :secondary-title="'v' + appVersion"
       show-notifications
       :notifications-count="unreadCount > 0 ? String(unreadCount) : ''"
+      @search-field-clear="clearSearch"
       @notifications-click="onNotificationsClick"
       @profile-click="onProfileClick"
     >
+      <ui5-input
+        v-if="isAuthenticated"
+        slot="searchField"
+        :value="searchQuery"
+        :placeholder="$t('todo.searchPlaceholder')"
+        @input="updateSearchInput"
+        @keydown.escape="clearSearch"
+      />
       <ui5-avatar slot="profile" size="XS" shape="Circle" color-scheme="Accent5">
         {{ userEmail ? userEmail[0].toUpperCase() : '?' }}
       </ui5-avatar>
@@ -1146,6 +1235,8 @@ onUnmounted(() => {
           <p v-else class="share-members-label">{{ $t('share.noMembers') }}</p>
         </div>
 
+        <p v-if="isGlobalSearchActive" class="todo-filter-hint">{{ $t('todo.searchGlobalHint') }}</p>
+
         <form class="todo-create" @submit.prevent="addTodo">
           <ui5-input
             :value="inputValue"
@@ -1253,7 +1344,7 @@ onUnmounted(() => {
                     {{ $t('todo.dueLabel', { date: formatDueDate(todo.dueDate) }) }}
                   </span>
                 </div>
-                <span v-if="activeListId === null && todo.listId" class="todo-list-badge">{{ lists.find(l => l.id === todo.listId)?.name }}</span>
+                <span v-if="(activeListId === null || isGlobalSearchActive) && todo.listId" class="todo-list-badge">{{ lists.find(l => l.id === todo.listId)?.name }}</span>
                 <span v-if="getDueDateState(todo.dueDate).isOverdue" class="todo-overdue-badge">{{ $t('todo.overdue') }}</span>
                 <span v-else-if="getDueDateState(todo.dueDate).isToday" class="todo-today-badge">{{ $t('todo.dueToday') }}</span>
               </label>
