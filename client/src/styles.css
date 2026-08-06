@@ -114,7 +114,7 @@ body {
 }
 
 .todo-create {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
   align-items: center;
 }
 
@@ -152,6 +152,103 @@ body {
   inset: 0;
   opacity: 0;
   cursor: pointer;
+}
+
+.todo-filter-box {
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--sapField_BorderColor, #89919a);
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  color: var(--sapContent_IconColor);
+  background: var(--sapField_Background, #fff);
+  cursor: pointer;
+}
+
+.todo-filter-box--active {
+  border-color: var(--sapSelectedColor, #0a6ed1);
+  color: var(--sapSelectedColor, #0a6ed1);
+}
+
+.todo-filter-icon {
+  font-size: 1rem;
+}
+
+.todo-filter-count {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--sapSelectedColor, #0a6ed1);
+  color: #fff;
+  font-size: 0.65rem;
+  line-height: 1rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.todo-sort-box {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--sapField_BorderColor, #89919a);
+  border-radius: 0.5rem;
+  display: grid;
+  place-items: center;
+  color: var(--sapContent_IconColor);
+  background: var(--sapField_Background, #fff);
+  cursor: pointer;
+}
+
+.todo-sort-box--active {
+  border-color: var(--sapSelectedColor, #0a6ed1);
+  color: var(--sapSelectedColor, #0a6ed1);
+}
+
+.todo-sort-icon {
+  font-size: 1rem;
+}
+
+.todo-filter-hint {
+  margin: -0.1rem 0 0;
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.todo-filter-menu-title {
+  padding: 0.6rem 0.8rem 0.4rem;
+  font-size: 0.8rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.todo-filter-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.todo-filter-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.1rem 0.8rem 0.5rem;
+}
+
+.todo-filter-match-label {
+  font-size: 0.8rem;
+  color: var(--sapContent_LabelColor);
+}
+
+.todo-filter-menu-actions {
+  padding: 0.25rem 0.5rem 0.5rem;
+  border-top: 1px solid var(--sapList_BorderColor);
 }
 
 .todo-header {

@@ -3,6 +3,11 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js";
 import "@ui5/webcomponents-icons/dist/calendar.js";
+import "@ui5/webcomponents-icons/dist/filter.js";
+import "@ui5/webcomponents-icons/dist/add-filter.js";
+import "@ui5/webcomponents-icons/dist/clear-filter.js";
+import "@ui5/webcomponents-icons/dist/sort.js";
+import "@ui5/webcomponents-icons/dist/sorting-ranking.js";
 import { createTodo, fetchTodos, patchTodo, removeTodo } from "./services/todoApi.js";
 import { formatDueDate, getDueDateState } from "./utils/dueDate.js";
 import { fetchLists, createList, removeList, leaveList as leaveListApi, fetchListMembers, inviteToList, removeMember } from "./services/listApi.js";
@@ -32,6 +37,9 @@ function showToast(msg) {
 const todos = ref([]);
 const inputValue = ref("");
 const dueDateValue = ref("");
+const activeFilters = ref([]);
+const filterMatchMode = ref("all");
+const sortMode = ref("createdDesc");
 const error = ref("");
 const loading = ref(false);
 const submitting = ref(false);
@@ -124,6 +132,8 @@ const shareError = ref("");
 const notifications = ref([]);
 const profilePopoverRef = ref(null);
 const notifPopoverRef = ref(null);
+const filterPopoverRef = ref(null);
+const sortPopoverRef = ref(null);
 
 const unreadCount = computed(() => notifications.value.filter((n) => !n.read).length);
 
@@ -348,8 +358,177 @@ async function toggleTodo(todo) {
   }
 }
 
+const filterModes = ["important", "today", "overdue", "completed"];
+const filterIconName = computed(() => (isFilterActive.value ? "add-filter" : "filter"));
+const sortIconName = computed(() => (sortMode.value === "createdDesc" ? "sort" : "sorting-ranking"));
+
+function getFilterLabel(mode) {
+  if (mode === "important") return t("todo.filterImportant");
+  if (mode === "today") return t("todo.filterToday");
+  if (mode === "overdue") return t("todo.filterOverdue");
+  if (mode === "completed") return t("todo.filterCompleted");
+  return t("todo.filterAll");
+}
+
+const activeFilterLabel = computed(() => {
+  if (activeFilters.value.length === 0) return t("todo.filterAll");
+  return activeFilters.value.map((mode) => getFilterLabel(mode)).join(", ");
+});
+
+const isFilterActive = computed(() => activeFilters.value.length > 0);
+const isSortActive = computed(() => sortMode.value !== "createdDesc");
+const isReorderEnabled = computed(() => activeFilters.value.length === 0 && !isSortActive.value);
+
+const filterOptions = computed(() => [
+  { mode: "important", label: t("todo.filterImportant") },
+  { mode: "today", label: t("todo.filterToday") },
+  { mode: "overdue", label: t("todo.filterOverdue") },
+  { mode: "completed", label: t("todo.filterCompleted") }
+]);
+
+const filterMatchOptions = computed(() => [
+  { mode: "all", label: t("todo.filterMatchAll") },
+  { mode: "any", label: t("todo.filterMatchAny") }
+]);
+
+const sortOptions = computed(() => [
+  { mode: "createdDesc", label: t("todo.sortCreatedNewest") },
+  { mode: "createdAsc", label: t("todo.sortCreatedOldest") },
+  { mode: "dueAsc", label: t("todo.sortDueSoonest") },
+  { mode: "dueDesc", label: t("todo.sortDueLatest") },
+  { mode: "alphaAsc", label: t("todo.sortAlphabetical") }
+]);
+
+function getSortLabel(mode) {
+  if (mode === "createdAsc") return t("todo.sortCreatedOldest");
+  if (mode === "dueAsc") return t("todo.sortDueSoonest");
+  if (mode === "dueDesc") return t("todo.sortDueLatest");
+  if (mode === "alphaAsc") return t("todo.sortAlphabetical");
+  return t("todo.sortCreatedNewest");
+}
+
+const activeSortLabel = computed(() => getSortLabel(sortMode.value));
+
+function openFilterMenu(event) {
+  if (filterPopoverRef.value?.open) {
+    filterPopoverRef.value.open = false;
+    return;
+  }
+
+  filterPopoverRef.value.opener = event.currentTarget;
+  filterPopoverRef.value.open = true;
+}
+
+function openSortMenu(event) {
+  if (sortPopoverRef.value?.open) {
+    sortPopoverRef.value.open = false;
+    return;
+  }
+
+  sortPopoverRef.value.opener = event.currentTarget;
+  sortPopoverRef.value.open = true;
+}
+
+function toggleFilter(mode) {
+  if (!filterModes.includes(mode)) return;
+
+  if (activeFilters.value.includes(mode)) {
+    activeFilters.value = activeFilters.value.filter((item) => item !== mode);
+    return;
+  }
+
+  activeFilters.value = [...activeFilters.value, mode];
+}
+
+function clearFilters() {
+  activeFilters.value = [];
+}
+
+function selectSort(mode) {
+  if (!sortOptions.value.find((item) => item.mode === mode)) return;
+  sortMode.value = mode;
+  sortPopoverRef.value.open = false;
+}
+
+function updateFilterMatchMode(event) {
+  const value = event.detail.selectedOption?.value;
+  filterMatchMode.value = value === "any" ? "any" : "all";
+}
+
+function isFilterSelected(mode) {
+  return activeFilters.value.includes(mode);
+}
+
+function matchesFilter(todo) {
+  if (activeFilters.value.length === 0) return true;
+
+  const dueState = getDueDateState(todo.dueDate);
+
+  const predicate = (mode) => {
+    if (mode === "important") return Boolean(todo.important);
+    if (mode === "today") return dueState.isToday;
+    if (mode === "overdue") return dueState.isOverdue;
+    if (mode === "completed") return Boolean(todo.completed);
+    return true;
+  };
+
+  if (filterMatchMode.value === "any") {
+    return activeFilters.value.some((mode) => predicate(mode));
+  }
+
+  return activeFilters.value.every((mode) => predicate(mode));
+}
+
+const filteredTodos = computed(() => todos.value.filter((todo) => matchesFilter(todo)));
+
+function getDueTimestamp(todo) {
+  if (!todo?.dueDate) return null;
+  const time = new Date(`${todo.dueDate}T00:00:00`).getTime();
+  return Number.isNaN(time) ? null : time;
+}
+
+function compareBySortMode(a, b) {
+  if (sortMode.value === "createdAsc") {
+    return a.createdAt > b.createdAt ? 1 : -1;
+  }
+
+  if (sortMode.value === "dueAsc") {
+    const aDue = getDueTimestamp(a);
+    const bDue = getDueTimestamp(b);
+    if (aDue === null && bDue === null) return 0;
+    if (aDue === null) return 1;
+    if (bDue === null) return -1;
+    if (aDue !== bDue) return aDue - bDue;
+    return 0;
+  }
+
+  if (sortMode.value === "dueDesc") {
+    const aDue = getDueTimestamp(a);
+    const bDue = getDueTimestamp(b);
+    if (aDue === null && bDue === null) return 0;
+    if (aDue === null) return 1;
+    if (bDue === null) return -1;
+    if (aDue !== bDue) return bDue - aDue;
+    return 0;
+  }
+
+  if (sortMode.value === "alphaAsc") {
+    return a.text.localeCompare(b.text, locale.value);
+  }
+
+  return a.createdAt < b.createdAt ? 1 : -1;
+}
+
 const sortedTodos = computed(() =>
-  [...todos.value].sort((a, b) => (b.important ? 1 : 0) - (a.important ? 1 : 0))
+  [...filteredTodos.value].sort((a, b) => {
+    const importanceDiff = (b.important ? 1 : 0) - (a.important ? 1 : 0);
+    if (importanceDiff !== 0) return importanceDiff;
+
+    const modeDiff = compareBySortMode(a, b);
+    if (modeDiff !== 0) return modeDiff;
+
+    return a.createdAt < b.createdAt ? 1 : -1;
+  })
 );
 
 const dragIndex = ref(null);
@@ -360,6 +539,12 @@ function onDragStart(index) {
 }
 
 function onDrop(index) {
+  if (!isReorderEnabled.value) {
+    dragIndex.value = null;
+    dragOverIndex.value = null;
+    return;
+  }
+
   if (dragIndex.value === null || dragIndex.value === index) {
     dragIndex.value = null;
     dragOverIndex.value = null;
@@ -731,6 +916,73 @@ onUnmounted(() => {
       </div>
     </ui5-popover>
 
+    <ui5-popover
+      v-if="isAuthenticated"
+      ref="filterPopoverRef"
+      placement="Bottom"
+      horizontal-align="End"
+      hide-arrow
+    >
+      <div class="todo-filter-menu-title">{{ $t('todo.filterMenuTitle') }}</div>
+      <div class="todo-filter-match-row">
+        <span class="todo-filter-match-label">{{ $t('todo.filterMatchLabel') }}</span>
+        <ui5-select @change="updateFilterMatchMode">
+          <ui5-option
+            v-for="option in filterMatchOptions"
+            :key="option.mode"
+            :value="option.mode"
+            :selected="filterMatchMode === option.mode"
+          >
+            {{ option.label }}
+          </ui5-option>
+        </ui5-select>
+      </div>
+      <ui5-list mode="None" separators="None">
+        <ui5-li
+          v-for="option in filterOptions"
+          :key="option.mode"
+          type="Active"
+          @click="toggleFilter(option.mode)"
+        >
+          <div class="todo-filter-option-row">
+            <ui5-checkbox :checked="isFilterSelected(option.mode)" tabindex="-1" />
+            <span>{{ option.label }}</span>
+          </div>
+        </ui5-li>
+      </ui5-list>
+      <div class="todo-filter-menu-actions">
+        <ui5-button
+          design="Transparent"
+          icon="clear-filter"
+          :disabled="!isFilterActive"
+          @click="clearFilters"
+        >
+          {{ $t('todo.clearFilters') }}
+        </ui5-button>
+      </div>
+    </ui5-popover>
+
+    <ui5-popover
+      v-if="isAuthenticated"
+      ref="sortPopoverRef"
+      placement="Bottom"
+      horizontal-align="End"
+      hide-arrow
+    >
+      <div class="todo-filter-menu-title">{{ $t('todo.sortMenuTitle') }}</div>
+      <ui5-list mode="SingleSelect" separators="None">
+        <ui5-li
+          v-for="option in sortOptions"
+          :key="option.mode"
+          :selected="sortMode === option.mode"
+          type="Active"
+          @click="selectSort(option.mode)"
+        >
+          {{ option.label }}
+        </ui5-li>
+      </ui5-list>
+    </ui5-popover>
+
     <section class="content-area" :class="{ 'content-area--centered': !isAuthenticated }">
       <article v-if="!isAuthenticated" class="fiori-card auth-card">
         <div class="auth-brand">
@@ -921,10 +1173,34 @@ onUnmounted(() => {
               />
             </label>
           </div>
+          <button
+            type="button"
+            class="todo-filter-box"
+            :class="{ 'todo-filter-box--active': isFilterActive }"
+            :title="$t('todo.filterBy', { mode: activeFilterLabel })"
+            :aria-label="$t('todo.filterBy', { mode: activeFilterLabel })"
+            @click="openFilterMenu"
+          >
+            <ui5-icon :name="filterIconName" class="todo-filter-icon" />
+            <span v-if="isFilterActive" class="todo-filter-count">{{ activeFilters.length }}</span>
+          </button>
+          <button
+            type="button"
+            class="todo-sort-box"
+            :class="{ 'todo-sort-box--active': isSortActive }"
+            :title="$t('todo.sortBy', { mode: activeSortLabel })"
+            :aria-label="$t('todo.sortBy', { mode: activeSortLabel })"
+            @click="openSortMenu"
+          >
+            <ui5-icon :name="sortIconName" class="todo-sort-icon" />
+          </button>
           <ui5-button icon="add" design="Emphasized" type="Submit" :disabled="submitting">
             {{ $t('todo.add') }}
           </ui5-button>
         </form>
+
+        <p v-if="isFilterActive" class="todo-filter-hint">{{ $t('todo.filterBy', { mode: activeFilterLabel }) }}</p>
+        <p v-if="isSortActive" class="todo-filter-hint">{{ $t('todo.sortBy', { mode: activeSortLabel }) }}</p>
 
         <ui5-message-strip v-if="error" design="Negative" hide-close-button>
           {{ error }}
@@ -950,13 +1226,13 @@ onUnmounted(() => {
                 :data-todo-index="index"
                 :class="{ 'todo-row--dragging': dragIndex === index, 'todo-row--drag-over': dragOverIndex === index }"
                 :style="swipe?.id === todo.id ? { transform: `translateX(${swipe.dx}px)`, transition: 'none', background: 'var(--sapList_Background)' } : {}"
-                draggable="true"
+                :draggable="isReorderEnabled"
                 @dragstart="onDragStart(index)"
                 @dragover.prevent="dragOverIndex = index"
                 @drop.prevent="onDrop(index)"
                 @dragend="onDragEnd"
               >
-              <ui5-icon name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" @touchstart.prevent="onTouchStart($event, index)" />
+              <ui5-icon v-if="isReorderEnabled" name="vertical-grip" class="todo-drag-handle" :title="$t('todo.dragToReorder')" @touchstart.prevent="onTouchStart($event, index)" />
               <label class="todo-label">
                 <ui5-checkbox
                   :checked="todo.completed"
