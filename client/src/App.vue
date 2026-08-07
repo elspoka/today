@@ -113,7 +113,8 @@ const languages = [
 ];
 
 function updateLanguage(event) {
-  const lang = event.detail.selectedOption.value;
+  const lang = event?.detail?.selectedOption?.value ?? event?.target?.value;
+  if (!lang) return;
   locale.value = lang;
   document.documentElement.lang = lang;
 }
@@ -949,9 +950,9 @@ onUnmounted(() => {
         <div class="profile-popover-divider"></div>
         <div class="profile-popover-item profile-popover-language">
           <ui5-icon name="globe" class="profile-popover-item-icon" />
-          <ui5-select @change="updateLanguage">
-            <ui5-option v-for="lang in languages" :key="lang.key" :value="lang.key" :selected="lang.key === locale">{{ lang.label }}</ui5-option>
-          </ui5-select>
+          <select class="language-select-compact" :value="locale" @change="updateLanguage">
+            <option v-for="lang in languages" :key="lang.key" :value="lang.key">{{ lang.label }}</option>
+          </select>
         </div>
         <div class="profile-popover-divider"></div>
         <div class="profile-popover-item profile-popover-switch-row">
@@ -1138,14 +1139,9 @@ onUnmounted(() => {
 
         <div class="auth-language">
           <ui5-icon name="globe" class="auth-language-icon" />
-          <ui5-select @change="updateLanguage">
-            <ui5-option
-              v-for="lang in languages"
-              :key="lang.key"
-              :value="lang.key"
-              :selected="lang.key === locale"
-            >{{ lang.label }}</ui5-option>
-          </ui5-select>
+          <select class="language-select-compact" :value="locale" @change="updateLanguage">
+            <option v-for="lang in languages" :key="lang.key" :value="lang.key">{{ lang.label }}</option>
+          </select>
         </div>
       </article>
 
@@ -1344,10 +1340,12 @@ onUnmounted(() => {
                     {{ $t('todo.dueLabel', { date: formatDueDate(todo.dueDate) }) }}
                   </span>
                 </div>
+              </label>
+              <div class="todo-meta-inline">
                 <span v-if="(activeListId === null || isGlobalSearchActive) && todo.listId" class="todo-list-badge">{{ lists.find(l => l.id === todo.listId)?.name }}</span>
                 <span v-if="getDueDateState(todo.dueDate).isOverdue" class="todo-overdue-badge">{{ $t('todo.overdue') }}</span>
                 <span v-else-if="getDueDateState(todo.dueDate).isToday" class="todo-today-badge">{{ $t('todo.dueToday') }}</span>
-              </label>
+              </div>
               <ui5-icon v-if="dragIndex === index" name="menu2" class="todo-dragging-icon" />
               <template v-else>
                 <ui5-button
