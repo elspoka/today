@@ -380,6 +380,11 @@ body {
   flex: 1;
 }
 
+/* prevent the checkbox hit area from shrinking, which distorts its border */
+.todo-label ui5-checkbox {
+  flex-shrink: 0;
+}
+
 .todo-label span {
   word-break: break-word;
 }
