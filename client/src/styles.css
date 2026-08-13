@@ -749,19 +749,39 @@ body {
   }
 
   .fiori-card {
+    width: 100%;
     padding: 0.9rem;
     border-radius: 0.5rem;
   }
 
   .todo-header {
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    align-items: stretch;
+  }
+
+  .todo-header > div:first-child {
+    min-width: 0;
   }
 
   .todo-header-controls {
-    flex: none;
+    display: flex;
+    flex-wrap: wrap;
     width: 100%;
     padding-left: 0;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .list-select-compact {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .todo-header-controls ui5-button {
+    flex-shrink: 0;
   }
 
   .todo-create {
