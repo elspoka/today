@@ -7,6 +7,11 @@ import { fetchNotifications, markAllNotificationsRead } from "./services/notific
 
 const appVersion = __APP_VERSION__;
 
+// Deletion is undoable for a few seconds instead of being instant (easy to trigger via mobile swipe)
+const UNDO_DELETE_MS = 5000;
+const pendingDelete = ref(null); // { todo, index, timerId }
+const pendingListDelete = ref(null); // { list, index, timerId, wasActive }
+
 const todos = ref([]);
 const inputValue = ref("");
 const error = ref("");
@@ -124,16 +129,43 @@ async function addList() {
 }
 
 async function deleteList(listId) {
+  const index = lists.value.findIndex((l) => l.id === listId);
+  if (index === -1) return;
+  const list = lists.value[index];
+
+  if (pendingListDelete.value) {
+    clearTimeout(pendingListDelete.value.timerId);
+    finalizeListDelete(pendingListDelete.value.list.id);
+  }
+
+  lists.value = lists.value.filter((l) => l.id !== listId);
+  if (shareListId.value === listId) shareListId.value = null;
+  const wasActive = activeListId.value === listId;
+  if (wasActive) await selectList(null);
+
+  const timerId = setTimeout(() => finalizeListDelete(listId), UNDO_DELETE_MS);
+  pendingListDelete.value = { list, index, timerId, wasActive };
+}
+
+async function finalizeListDelete(listId) {
+  if (pendingListDelete.value?.list.id === listId) pendingListDelete.value = null;
   try {
     await removeList(listId);
-    lists.value = lists.value.filter((l) => l.id !== listId);
-    if (shareListId.value === listId) shareListId.value = null;
-    if (activeListId.value === listId) {
-      await selectList(null);
-    }
   } catch (err) {
     error.value = err.message;
+    await loadLists();
   }
+}
+
+function undoListDelete() {
+  if (!pendingListDelete.value) return;
+  clearTimeout(pendingListDelete.value.timerId);
+  const { list, index, wasActive } = pendingListDelete.value;
+  const arr = [...lists.value];
+  arr.splice(Math.min(index, arr.length), 0, list);
+  lists.value = arr;
+  pendingListDelete.value = null;
+  if (wasActive) selectList(list.id);
 }
 
 async function openSharePanel(listId) {
@@ -218,15 +250,40 @@ async function toggleTodo(todo) {
 }
 
 async function deleteItem(todoId) {
-  const previous = todos.value;
-  todos.value = todos.value.filter((todo) => todo.id !== todoId);
+  const index = todos.value.findIndex((todo) => todo.id === todoId);
+  if (index === -1) return;
+  const todo = todos.value[index];
 
+  // only one undo slot; finalize any earlier pending delete right away
+  if (pendingDelete.value) {
+    clearTimeout(pendingDelete.value.timerId);
+    finalizeDelete(pendingDelete.value.todo.id);
+  }
+
+  todos.value = todos.value.filter((t) => t.id !== todoId);
+
+  const timerId = setTimeout(() => finalizeDelete(todoId), UNDO_DELETE_MS);
+  pendingDelete.value = { todo, index, timerId };
+}
+
+async function finalizeDelete(todoId) {
+  if (pendingDelete.value?.todo.id === todoId) pendingDelete.value = null;
   try {
     await removeTodo(todoId);
   } catch (err) {
-    todos.value = previous;
     error.value = err.message;
+    await loadTodos();
   }
+}
+
+function undoDelete() {
+  if (!pendingDelete.value) return;
+  clearTimeout(pendingDelete.value.timerId);
+  const { todo, index } = pendingDelete.value;
+  const arr = [...todos.value];
+  arr.splice(Math.min(index, arr.length), 0, todo);
+  todos.value = arr;
+  pendingDelete.value = null;
 }
 
 async function signIn() {
@@ -380,6 +437,14 @@ onMounted(async () => {
 
 onUnmounted(() => {
   authSubscription?.unsubscribe();
+  if (pendingDelete.value) {
+    clearTimeout(pendingDelete.value.timerId);
+    finalizeDelete(pendingDelete.value.todo.id);
+  }
+  if (pendingListDelete.value) {
+    clearTimeout(pendingListDelete.value.timerId);
+    finalizeListDelete(pendingListDelete.value.list.id);
+  }
 });
 </script>
 
@@ -604,5 +669,15 @@ onUnmounted(() => {
         </ui5-list>
       </article>
     </section>
+    <div v-if="pendingDelete || pendingListDelete" class="undo-snackbar-stack">
+      <div v-if="pendingDelete" class="undo-snackbar">
+        <span>Task deleted</span>
+        <button type="button" class="undo-snackbar-btn" @click="undoDelete">Undo</button>
+      </div>
+      <div v-if="pendingListDelete" class="undo-snackbar">
+        <span>List deleted</span>
+        <button type="button" class="undo-snackbar-btn" @click="undoListDelete">Undo</button>
+      </div>
+    </div>
   </main>
 </template>
