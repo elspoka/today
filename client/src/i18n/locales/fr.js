@@ -91,5 +91,6 @@ export default {
     listLeft: "Liste quittée",
     inviteSent: "Invitation envoyée",
     notificationDeleted: "Notification ignorée",
+    undo: "Annuler",
   },
 };

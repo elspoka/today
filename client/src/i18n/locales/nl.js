@@ -91,5 +91,6 @@ export default {
     listLeft: "Lijst verlaten",
     inviteSent: "Uitnodiging verzonden",
     notificationDeleted: "Melding gesloten",
+    undo: "Ongedaan maken",
   },
 };

@@ -91,5 +91,6 @@ export default {
     listLeft: "Saliste de la lista",
     inviteSent: "Invitación enviada",
     notificationDeleted: "Notificación descartada",
+    undo: "Deshacer",
   },
 };

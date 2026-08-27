@@ -91,5 +91,6 @@ export default {
     listLeft: "Αποχωρήσατε από τη λίστα",
     inviteSent: "Πρόσκληση εστάλη",
     notificationDeleted: "Ειδοποίηση απορρίφθηκε",
+    undo: "Αναίρεση",
   },
 };

@@ -91,5 +91,6 @@ export default {
     listLeft: "Liste verlassen",
     inviteSent: "Einladung gesendet",
     notificationDeleted: "Benachrichtigung geschlossen",
+    undo: "Rückgängig",
   },
 };
