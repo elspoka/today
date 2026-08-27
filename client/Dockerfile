@@ -1,6 +1,6 @@
 # Stage 1: Build
 # Build context must be the repo root (monorepo — lock file lives there)
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /app
 
 # Build-time env vars (Vite bakes these in at build time)

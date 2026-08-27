@@ -1,5 +1,5 @@
 # Build context must be the repo root (monorepo — lock file lives there)
-FROM node:18-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 # Copy root workspace manifest + lock file, then workspace package.json files
