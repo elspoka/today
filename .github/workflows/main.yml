@@ -2,8 +2,9 @@ name: Build & Deploy (main)
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -28,7 +29,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push client
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./client/Dockerfile
@@ -43,7 +44,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=client-main
 
       - name: Build and push server
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./server/Dockerfile
@@ -53,3 +54,24 @@ jobs:
             ghcr.io/elspoka/today-server:${{ github.ref_name }}
           cache-from: type=gha,scope=server-main
           cache-to: type=gha,mode=max,scope=server-main
+
+  deploy:
+    name: Deploy to VPS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd ~/today-prod || cd /opt/today
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u elspoka --password-stdin
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose ps
