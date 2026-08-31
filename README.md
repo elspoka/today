@@ -2,7 +2,7 @@
 
 Full-stack todo app built with Vue 3 (Vite) + Node.js (Express) + Supabase, following the Repository Pattern for easy database migration.
 
-**Version:** 1.0.1
+**Version:** 1.0.7
 
 ## Features
 
@@ -80,6 +80,10 @@ curl http://localhost:3000/api/setup-check
 ```
 
 ## Changelog
+
+### v1.0.7
+- Facebook Login (Supabase OAuth provider)
+- Messenger webhook scaffold (`/api/webhooks/messenger`) with signature verification
 
 ### v1.0.1
 - Repository Pattern + service/controller/route layers

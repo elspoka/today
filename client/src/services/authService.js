@@ -31,6 +31,14 @@ export const authService = {
     });
   },
 
+  async signInWithFacebook() {
+    if (!supabase) throw new Error(supabaseConfigError);
+    return supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: { redirectTo: window.location.origin }
+    });
+  },
+
   async signOut() {
     if (!supabase) return;
     return supabase.auth.signOut();

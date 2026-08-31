@@ -17,7 +17,7 @@ import { createNotificationService } from "./services/notificationService.js";
 import { createTodoRouter } from "./routes/todoRoutes.js";
 import { createListRouter } from "./routes/listRoutes.js";
 import { createNotificationRouter } from "./routes/notificationRoutes.js";
-import logger from "./logger.js";
+import { createWebhookRouter } from "./routes/webhookRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,7 +40,15 @@ const requireAuth = createAuthMiddleware(settings);
 app.set("trust proxy", 1);
 app.use(helmet());
 app.use(compression());
-app.use(express.json({ limit: "10kb" }));
+app.use(
+  express.json({
+    limit: "10kb",
+    // Raw bytes are needed to verify Meta's X-Hub-Signature-256 webhook signature.
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    }
+  })
+);
 app.use(
   cors({
     origin: CLIENT_ORIGINS
@@ -70,9 +78,10 @@ app.get("/api/setup-check", async (_req, res) => {
 app.use("/api/todos", requireAuth, createTodoRouter(todoService));
 app.use("/api/lists", requireAuth, createListRouter(listService));
 app.use("/api/notifications", requireAuth, createNotificationRouter(notificationService));
+app.use("/api/webhooks", createWebhookRouter(settings));
 
 app.use((err, _req, res, _next) => {
-  logger.error({ err }, "Unhandled request error");
+  console.error(err);
   const statusCode = err.statusCode ?? 500;
   const errorMessage =
     err.publicMessage ?? (process.env.NODE_ENV === "production" ? "Internal server error" : err.message);
@@ -81,14 +90,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  logger.info({ port: PORT, db: settings.dbProvider }, "Server running");
-});
-
-process.on("unhandledRejection", (reason) => {
-  logger.error({ reason }, "Unhandled promise rejection");
-});
-
-process.on("uncaughtException", (err) => {
-  logger.fatal({ err }, "Uncaught exception — shutting down");
-  process.exit(1);
+  console.log(`Server running on http://localhost:${PORT}`);
 });

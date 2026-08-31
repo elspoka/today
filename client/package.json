@@ -1,6 +1,6 @@
 {
   "name": "todo-client",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "type": "module",
   "scripts": {
@@ -22,8 +22,7 @@
     "@ui5/webcomponents": "^2.19.2",
     "@ui5/webcomponents-fiori": "^2.19.2",
     "@ui5/webcomponents-icons": "^2.19.2",
-    "vue": "^3.5.20",
-    "vue-i18n": "^11.4.4"
+    "vue": "^3.5.20"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.3",
