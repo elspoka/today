@@ -1,7 +1,7 @@
 {
   "name": "modern-todo-monorepo",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.7",
   "workspaces": [
     "server",
     "client"

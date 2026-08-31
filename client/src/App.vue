@@ -332,26 +332,24 @@ async function signUp() {
   authLoading.value = false;
 }
 
-// async function signInWithGoogle() {
-//   if (!supabase) {
-//     authError.value = supabaseConfigError;
-//     return;
-//   }
-//
-//   authError.value = "";
-//   authInfo.value = "";
-//
-//   const { error: oauthError } = await supabase.auth.signInWithOAuth({
-//     provider: "google",
-//     options: {
-//       redirectTo: window.location.origin
-//     }
-//   });
-//
-//   if (oauthError) {
-//     authError.value = oauthError.message;
-//   }
-// }
+async function signInWithFacebook() {
+  if (supabaseConfigError) {
+    authError.value = supabaseConfigError;
+    return;
+  }
+
+  authError.value = "";
+  authInfo.value = "";
+
+  try {
+    const { error: oauthError } = await authService.signInWithFacebook();
+    if (oauthError) {
+      authError.value = oauthError.message;
+    }
+  } catch (err) {
+    authError.value = err.message;
+  }
+}
 
 async function signOut() {
   showProfileMenu.value = false;
@@ -535,9 +533,9 @@ onUnmounted(() => {
           </ui5-button>
         </form>
 
-        <!-- <ui5-button design="Transparent" @click="signInWithGoogle">
-          Continue with Google
-        </ui5-button> -->
+        <ui5-button design="Transparent" @click="signInWithFacebook">
+          Continue with Facebook
+        </ui5-button>
 
         <ui5-message-strip v-if="authError" design="Negative" hide-close-button>
           {{ authError }}

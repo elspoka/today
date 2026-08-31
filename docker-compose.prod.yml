@@ -1,25 +1,42 @@
 services:
   client:
     image: elspoka/today-client:latest
+    container_name: today-client
     restart: unless-stopped
-    ports:
-      - "3150:80"
+    environment:
+      - VIRTUAL_HOST=today.embitted.com
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=today.embitted.com
+    expose:
+      - "80"
     depends_on:
       - server
-
+    networks:
+      - reverse-proxy
+      - internal
   server:
     image: elspoka/today-server:latest
+    container_name: today-server
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       PORT: 3000
       DB_PROVIDER: supabase
       AUTH_MODE: supabase
+      NODE_ENV: production
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-      CLIENT_ORIGIN: http://localhost:3150
+      CLIENT_ORIGIN: https://today.embitted.com
       MESSENGER_VERIFY_TOKEN: ${MESSENGER_VERIFY_TOKEN}
       MESSENGER_APP_SECRET: ${MESSENGER_APP_SECRET}
       MESSENGER_PAGE_ACCESS_TOKEN: ${MESSENGER_PAGE_ACCESS_TOKEN}
+    networks:
+      - reverse-proxy
+      - internal
+networks:
+  internal:
+    driver: bridge
+  reverse-proxy:
+    external: true

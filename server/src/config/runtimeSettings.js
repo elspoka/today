@@ -44,6 +44,9 @@ export function getRuntimeSettings() {
     authMode,
     devAuthUserId: process.env.DEV_AUTH_USER_ID ?? "local-dev-user",
     devAuthEmail: process.env.DEV_AUTH_EMAIL ?? "dev@local.test",
-    devAuthToken: process.env.DEV_AUTH_TOKEN ?? "dev-token"
+    devAuthToken: process.env.DEV_AUTH_TOKEN ?? "dev-token",
+    messengerVerifyToken: process.env.MESSENGER_VERIFY_TOKEN ?? "",
+    messengerAppSecret: process.env.MESSENGER_APP_SECRET ?? "",
+    messengerPageAccessToken: process.env.MESSENGER_PAGE_ACCESS_TOKEN ?? ""
   };
 }
